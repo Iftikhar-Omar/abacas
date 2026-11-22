@@ -4,7 +4,7 @@
 
 import { applyPrefs, readPrefs, sanitizePrefs, st, writePrefs } from './studio.js';
 import { extraConcepts, languages, skillName, tr } from './i18n.js';
-import { allLessons, concept, freshProgress, lessons, normalLessons, recordAttempt, units } from './curriculum.js';
+import { allLessons, concept, freshProgress, lessons, markLearned, normalLessons, recordAttempt, units } from './curriculum.js';
 import { config } from './config.js';
 import { answerEquals, cleanInput, evaluate, solve } from './engine.js';
 import { Playback, makeChallenge, presets, suggestNext, validateConfig } from './gym.js';
@@ -100,8 +100,8 @@ var words = {
   normal: ["Starter path", "\u09B8\u09BE\u09A7\u09BE\u09B0\u09A3 \u09AA\u09A5"],
   mastery: ["Full course", "\u09A6\u0995\u09CD\u09B7\u09A4\u09BE\u09B0 \u09AA\u09A5"],
   normalNote: [
-    "16 short lessons. From your first bead to mental maths.",
-    "\u09AA\u09C1\u0981\u09A4\u09BF \u0997\u09CB\u09A8\u09BE \u09A5\u09C7\u0995\u09C7 \u09AE\u09A8\u09C7 \u09AE\u09A8\u09C7 \u0985\u0999\u09CD\u0995\u2014\u09E7\u09EC\u099F\u09BF \u09A7\u09BE\u09AA\u09C7\u0964"
+    "17 short lessons. From what an abacus is to mental maths.",
+    "\u09AA\u09C1\u0981\u09A4\u09BF \u0997\u09CB\u09A8\u09BE \u09A5\u09C7\u0995\u09C7 \u09AE\u09A8\u09C7 \u09AE\u09A8\u09C7 \u0985\u0999\u09CD\u0995\u2014\u09E7\u09ED\u099F\u09BF \u09A7\u09BE\u09AA\u09C7\u0964"
   ],
   masteryNote: [
     "All 78 lessons, with deeper practice in every skill.",
@@ -319,11 +319,13 @@ function renderLearn() {
   const streak = streakDays();
   const normal = state.journey === "normal";
 
-  const kicker = !next ? P("home_allDone", lang) : completed === 0 && !started ? P("home_kickerStart", lang) : P(started ? "home_kickerContinue" : "home_kickerNext", lang, { n: heroIndex + 1, t: list.length });
-  const cta = !next ? (normal ? btn(`${P("home_ctaFull", lang)} ${icon("learn")}`, "journey", "primary hero-cta", 'data-journey="mastery"') : btn(`${P("home_ctaPractice", lang)} ${icon("gym")}`, "nav", "primary hero-cta", 'data-view="gym"')) : btn(`${P(started ? "home_ctaContinue" : "home_ctaStart", lang)} ${chevronIcon}`, "openLesson", "primary hero-cta", `data-id="${hero.id}"`);
+  // "Current lesson" label + where it sits in the path; the very first lesson says "Start here"
+  const fresh = completed === 0 && !started;
+  const kicker = !next ? P("home_allDone", lang) : `<span class="hero-chip${fresh ? " first" : ""}">${P(fresh ? "home_kickerStart" : "home_current", lang)}</span><span class="hero-where">${P("home_lessonOf", lang, { n: heroIndex + 1, t: list.length })}</span>`;
+  const cta = !next ? (normal ? btn(`${P("home_ctaFull", lang)} ${icon("learn")}`, "journey", "primary hero-cta", 'data-journey="mastery"') : btn(`${P("home_ctaPractice", lang)} ${icon("gym")}`, "nav", "primary hero-cta", 'data-view="gym"')) : btn(`${P(started || completed > 0 ? "home_ctaContinue" : "home_ctaStart", lang)} ${chevronIcon}`, "openLesson", "primary hero-cta", `data-id="${hero.id}"`);
   const heroTitle = next ? esc(L(hero)) : P("home_allDone", lang);
   const heroText = next ? esc(blurbFor(hero)) : P("home_allDoneB", lang);
-  const meta = next ? `<span class="hero-meta"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>${P("home_min", lang, { m: hero.minutes })}</span>${completed === 0 && !started ? `<span class="hero-meta">${P("home_noReading", lang)}</span>` : ""}` : "";
+  const meta = next ? `<span class="hero-meta"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>${P("home_min", lang, { m: hero.minutes })}</span>${completed === 0 && !started ? `<span class="hero-meta">${P(hero.intro ? "home_introMeta" : "home_noReading", lang)}</span>` : ""}` : "";
 
   // the path at a glance: one dot per lesson (starter) or one chip per unit (full course)
   const strip = normal
@@ -333,7 +335,7 @@ function renderLearn() {
   const rowsOrUnits = normal
     ? `<div class="lesson-rows">${list.map((l, i) => {
         const st = isDone(l) ? "done" : l === next ? "current" : "todo";
-        return `<button data-action="openLesson" data-id="${l.id}" class="lesson-row ${st}"><span class="lr-mark">${st === "done" ? checkIcon : i + 1}</span><span class="lr-body"><span class="lr-title">${esc(L(l))}</span><span class="lr-meta">${P("home_min", lang, { m: l.minutes })}</span></span><span class="lr-end">${st === "current" ? `<span class="lr-pill">${started ? P("home_ctaContinue", lang) : P("home_start", lang)}</span>` : st === "done" ? `<span class="lr-done">${P("home_done", lang)}</span>` : chevronIcon}</span></button>`;
+        return `<button data-action="openLesson" data-id="${l.id}" class="lesson-row ${st}"><span class="lr-mark">${st === "done" ? checkIcon : i + 1}</span><span class="lr-body"><span class="lr-title">${esc(L(l))}</span><span class="lr-meta">${P("home_min", lang, { m: l.minutes })}</span></span><span class="lr-end">${st === "current" ? `<span class="lr-pill">${started || completed > 0 ? P("home_ctaContinue", lang) : P("home_start", lang)}</span>` : st === "done" ? `<span class="lr-done">${P("home_done", lang)}</span>` : chevronIcon}</span></button>`;
       }).join("")}</div>`
     : `<details class="track-options"><summary>${W("sources")}</summary><div class="track-picker" aria-label="${S("tracks")}">${[["numbers", "numberTrack", "01"], ["abacus", "abacusTrack", "02"], ["fingers", "fingerTrack", "03"], ["mental", "mentalTrack", "04"]].map(([k, t, n]) => `<button data-action="track" data-track="${k}" aria-pressed="${state.track === k}" class="${state.track === k ? "selected" : ""}"><small>${n}</small><span>${S(t)}</span></button>`).join("")}</div></details><div class="curriculum">${units.map((u, i) => {
         const ll = list.filter((l) => l.unit === i);
@@ -1347,6 +1349,9 @@ configurePlayer({
   recordAttempt: (payload) => {
     recordAttempt(state.progress, payload);
     saveProgress();
+  },
+  markLearned: (l) => {
+    if (markLearned(state.progress, l.id)) saveProgress();
   },
   S,
   T,

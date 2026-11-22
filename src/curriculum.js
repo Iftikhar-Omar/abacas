@@ -734,6 +734,18 @@ export function freshProgress() {
     updatedAt: 0
   };
 }
+/** Orientation lessons (no questions) count as learned once the learner has been through them. */
+export function markLearned(progress, lessonId) {
+  const now = Date.now(), cur = progress.lessons[lessonId];
+  if (cur && ["learned", "retained"].includes(cur.status)) return false;
+  progress.lessons[lessonId] = {
+    attempts: (cur?.attempts || 0) + 1, correct: (cur?.correct || 0) + 1, streak: 3, level: 1,
+    days: [new Date(now).toLocaleDateString("en-CA")], items: ["intro-1", "intro-2", "intro-3"],
+    status: "learned", firstLearnedAt: now, due: now + 365 * 864e5, last: now,
+  };
+  progress.updatedAt = now;
+  return true;
+}
 export function recordAttempt(progress, {
   lessonId,
   correct,

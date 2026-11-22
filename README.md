@@ -27,7 +27,7 @@ npm test         # lint + build + every lesson + focused flows (needs `npm run d
 
 ## What a lesson feels like
 
-Every lesson is a short, full-screen flow with one obvious button at a time:
+The starter path opens with **What is an abacus?**, a traditional introduction (name, a little history, the names and jobs of the parts, a short demo with a "don't worry if it was fast" promise, why it is worth learning and the mental-abacus goal). It is a 16-slide picture lesson (`src/intro.js`) that counts as learned once finished. Every other lesson is a short, full-screen flow with one obvious button at a time:
 
 1. **Learn** – a picture-first idea (parts of the abacus, place value, *little friends*, *big friends*, borrowing). Same ideas live on the Learn page under **Helpful ideas** and open from the "?" tag on any friend move.
 2. **Watch** – a friendly coach narrates each move; the beads that must move glow, arrows show the direction, and the board slides for you. Back / Next / Auto-play / Again.
@@ -55,20 +55,21 @@ src/
   soroban.js          SVG abacus (tap, keyboard, highlights, animation)
   fingers.js          two-hand finger board with the same API
   engine.js           exact arithmetic + step-by-step bead move generator
-  curriculum.js, journeys.js, advanced-lessons.js   78 mastery lessons + the 15-lesson starter path
+  curriculum.js, journeys.js, advanced-lessons.js   78 mastery lessons + the 17-lesson starter path
   practice.js, assessment.js, gym.js                question generators, unit checks, mental gym
   i18n.js, journey-i18n.js, player-i18n.js, player-i18n-extra.js   text for six languages
 tools/                build.mjs (single-file bundle), dev-server.mjs, prune-*.mjs helpers
-tests/                lib.mjs, smoke.mjs, sweep-lessons.mjs, flows.mjs, tour.mjs, run.mjs
+tests/                lib.mjs, smoke.mjs, sweep-lessons.mjs, flows.mjs, intro.mjs, tour.mjs, run.mjs
 ```
 
 ## Tests
 
 * `audit.mjs` (no browser) checks ~2,000 expressions: every lesson example/practice item plus random sums. It proves answers match JavaScript's arithmetic, every scene is well formed, every bead move a learner is asked to make is reachable by real taps (breadth-first search over the tap rules), and Solve-page input forms are understood.
-* `sweep-lessons.mjs` opens **all 93 lessons**, plays them through with correct answers (keyboard on the board,
+* `sweep-lessons.mjs` opens **all 95 lessons**, plays them through with correct answers (keyboard on the board,
   typed answers), and cross-checks the engine's answers against JavaScript arithmetic.
 * `flows.mjs` covers the Solve page, unit check, mental gym, all six languages (incl. right-to-left),
   keyboard-only use and text hygiene (no `{placeholder}` / `undefined` leaks).
+* `intro.mjs` plays the introduction in all six languages at desktop and phone size (no raw keys, nothing off-screen) and checks the home "Current lesson" / "Continue" labels.
 * `tour.mjs` screenshots every page at desktop and phone size for visual review.
 
 ## Notes

@@ -6,6 +6,7 @@
 
 import { foundationStrings } from "./foundations-i18n.js";
 import { extra } from "./player-i18n-extra.js";
+import { introStrings } from "./intro-i18n.js";
 
 const m = "−"; // minus sign
 
@@ -121,6 +122,8 @@ const base = {
   fr_convertAll: { en: "We write every number as pieces of 1/{L}. The amounts stay the same.", bn: "সবাইকে 1/{L} টুকরো হিসেবে লিখি। পরিমাণ বদলায় না।" },
   home_welcome: { en: "Welcome back", bn: "আবার স্বাগতম" },
   home_welcomeNew: { en: "Hi! Let’s learn the abacus", bn: "নমস্কার! চলো পুঁতিবোর্ড শিখি" },
+  home_current: { en: "Current lesson", bn: "বর্তমান পাঠ", es: "Lección actual", hi: "वर्तमान पाठ", ar: "الدرس الحالي", zh: "当前课程" },
+  home_lessonOf: { en: "Lesson {n} of {t}", bn: "{t}-এর মধ্যে পাঠ {n}", es: "Lección {n} de {t}", hi: "पाठ {n} / {t}", ar: "الدرس {n} من {t}", zh: "第 {n} 课，共 {t} 课" },
   home_kickerStart: { en: "Start here", bn: "এখান থেকে শুরু" },
   home_kickerContinue: { en: "Continue · Lesson {n} of {t}", bn: "চালিয়ে যাও · {t}-এর মধ্যে পাঠ {n}" },
   home_kickerNext: { en: "Up next · Lesson {n} of {t}", bn: "এরপর · {t}-এর মধ্যে পাঠ {n}" },
@@ -390,7 +393,7 @@ const base = {
 };
 
 /** Full table (en + bn here, other languages from the extra file). */
-export const table = Object.fromEntries(Object.entries({ ...base, ...foundationStrings }).map(([k, v]) => [k, { ...v, ...(extra[k] || {}) }]));
+export const table = Object.fromEntries(Object.entries({ ...base, ...foundationStrings, ...introStrings }).map(([k, v]) => [k, { ...v, ...(extra[k] || {}) }]));
 
 /** Look up a string and fill {placeholders}. */
 export function P(key, lang = "en", vars = {}) {

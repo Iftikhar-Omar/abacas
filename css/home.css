@@ -169,14 +169,46 @@ html[data-theme="dark"] .streak-chip {
   box-shadow: 0 14px 40px rgba(36, 52, 110, 0.08);
 }
 .hero-kicker {
-  margin: 0 0 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0 0 12px;
   font-size: var(--fs-sm);
-  font-weight: 700;
-  color: var(--blue-dark);
-  letter-spacing: 0.01em;
 }
-html[data-theme="dark"] .hero-kicker {
-  color: #a5b8ff;
+.hero-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 13px 5px 11px;
+  border-radius: 999px;
+  background: #e8eeff;
+  color: var(--blue-dark);
+  font-weight: 700;
+  line-height: 1.2;
+}
+.hero-chip::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.hero-chip.first {
+  background: #fff1d6;
+  color: #8a5300;
+}
+.hero-where {
+  color: var(--ink-3);
+  font-weight: 600;
+}
+html[data-theme="dark"] .hero-chip {
+  background: rgba(165, 184, 255, 0.16);
+  color: #c3d0ff;
+}
+html[data-theme="dark"] .hero-chip.first {
+  background: rgba(255, 189, 98, 0.18);
+  color: #ffcf8a;
 }
 .hero-title {
   margin: 0 0 12px;
@@ -427,6 +459,10 @@ html[data-theme="dark"] .node.current {
   font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--blue-dark);
+}
+.path-strip li:first-child .here {
+  left: 0;
+  transform: none;
 }
 html[data-theme="dark"] .path-strip .here {
   color: #a5b8ff;

@@ -1,14 +1,42 @@
 // File: journeys.js
 // Directory: src/
-// Builds the 15-lesson starter path from the catalogue.
+// Builds the 17-lesson starter path from the catalogue: a traditional introduction first, then the hands-on lessons.
 
 import { normalTitles } from './journey-i18n.js';
+import { INTRO_ID } from './intro.js';
+
+const titlesFor = (en, bn, order) => ({
+  en,
+  bn,
+  ...Object.fromEntries(Object.entries(normalTitles).map(([lang2, values]) => [lang2, values[order]])),
+});
+
+/** The traditional introduction: it is read and watched, with no practice questions. */
+function introLesson(en, bn, minutes, order) {
+  return {
+    id: INTRO_ID,
+    title: titlesFor(en, bn, order),
+    skill: "place",
+    example: "46+38",
+    practice: [],
+    practiceIds: [],
+    parts: [],
+    idea: { en: "An abacus is a counting tool made of beads on sticks.", bn: "অ্যাবাকাস হলো কাঠির ওপর পুঁতি দিয়ে তৈরি গোনার যন্ত্র।" },
+    order,
+    unit: 0,
+    minutes,
+    prerequisite: null,
+    journey: "normal",
+    intro: true,
+  };
+}
 
 export function createNormalLessons(catalog, ideaFor) {
   const rows4 = [
+    ["intro", "What is an abacus?", "\u0985\u09CD\u09AF\u09BE\u09AC\u09BE\u0995\u09BE\u09B8 \u0995\u09C0?", "intro", [], [], 5],
     [
       "beads",
-      "Meet your abacus",
+      "Your first beads",
       "\u099A\u09B2\u09CB \u09AA\u09C1\u0981\u09A4\u09BF \u0997\u09C1\u09A8\u09BF",
       "place",
       ["place"],
@@ -153,6 +181,7 @@ export function createNormalLessons(catalog, ideaFor) {
   ];
   return rows4.map(
     ([id, en, bn, skill, members, practiceIds, minutes], order) => {
+      if (id === "intro") return introLesson(en, bn, minutes, order);
       const parts = members.map((id2) => {
         const l = catalog.find((l2) => l2.id === id2);
         if (!l) throw Error(`Missing journey lesson: ${id2}`);

@@ -18,6 +18,7 @@ import { explainerFor, explainerById } from "./explainers.js";
 import { P } from "./player-i18n.js";
 import { FingerBoard } from "./fingers.js";
 import { scriptFor } from "./foundations.js";
+import { introExplainer } from "./intro.js";
 import { sfx } from "./sfx.js";
 import { Soroban, layoutFor, snapshotToDigits } from "./soroban.js";
 
@@ -72,6 +73,7 @@ function handsWording(scenes, layout) {
 function buildPlan(lesson, seenIdeas) {
   const parts = lesson.parts || [lesson];
   const stages = [];
+  if (lesson.intro) return [{ type: "learn", part: 0 }, { type: "done" }];
   const script = scriptFor(lesson.id);
   if (script) stages.push({ type: "script" });
   if (script && !script.keepParts) {
@@ -108,7 +110,8 @@ export function openLesson(lesson, { startStage = 0 } = {}) {
   };
   setFractionStyle(lesson.skill === "fractions" || (lesson.parts || []).some((p) => p.skill === "fractions"));
   S.scriptDef = scriptFor(lesson.id);
-  S.parts = S.scriptDef && !S.scriptDef.keepParts ? [] : (lesson.parts || [lesson]).map(preparePart);
+  if (lesson.intro) S.explainer = introExplainer(lang());
+  S.parts = lesson.intro ? [] : S.scriptDef && !S.scriptDef.keepParts ? [] : (lesson.parts || [lesson]).map(preparePart);
   S.plan = buildPlan(lesson);
   mount();
   enterStage();
@@ -167,6 +170,7 @@ export function closePlayer(silent = false) {
 /** Re-draw after a language change. */
 export function rerenderPlayer() {
   if (!root || !S) return;
+  if (S.lesson?.intro) S.explainer = introExplainer(lang());
   if (S.parts.length) S.parts = S.lesson.parts ? S.lesson.parts.map(preparePart) : [preparePart(S.lesson)];
   if (S.plan[S.stage]?.type === "script") S.sx = Math.min(S.sx || 0, S.scriptDef.steps.length - 1);
   enterStage(true);
@@ -237,8 +241,8 @@ const equationChips = (trace, activeGroup) =>
     ? `<div class="lp-eq" dir="ltr" aria-label="${esc(pretty(trace.source))}">${trace.groups.length > 4 ? `<span class="on">${esc(pretty(trace.source))}</span>` : trace.groups.map((g, i) => `<span class="${i === activeGroup ? "on" : ""} ${g.tone}">${esc(pretty(g.label))}</span>`).join("")}</div>`
     : "";
 
-function boardPanel({ trace, group, boardable, hide, tools = "" }) {
-  return `<section class="lp-stage ${boardable && !hide ? "" : "no-board"}" aria-label="${esc(t("abacus"))}">${equationChips(trace, group)}${boardable && !hide ? `<div class="lp-board" id="lp-board"></div><div class="lp-foot"><div class="lp-total"><small>${esc(t("boardShows"))}</small><output id="lp-total" dir="ltr">0</output></div>${tools}</div>` : `<div class="lp-mathpad" id="lp-mathpad"></div>${tools}`}</section>`;
+function boardPanel({ trace, group, boardable, hide, tools = "", art = false }) {
+  return `<section class="lp-stage ${boardable && !hide ? "" : "no-board"}" aria-label="${esc(t("abacus"))}">${equationChips(trace, group)}${art ? `<div class="lp-art" id="lp-art" hidden></div>` : ""}${boardable && !hide ? `<div class="lp-board" id="lp-board"></div><div class="lp-foot"><div class="lp-total"><small>${esc(t("boardShows"))}</small><output id="lp-total" dir="ltr">0</output></div>${tools}</div>` : `<div class="lp-mathpad" id="lp-mathpad"></div>${tools}`}</section>`;
 }
 
 function makeBoard(layout, interactive, onChange) {
@@ -282,7 +286,7 @@ function nextStage() {
  */
 function sceneViewer({ scenes, trace, layout, boardable, onFinish, finishLabel, tag }) {
   const v = { scenes, trace, layout, boardable, onFinish, finishLabel, tag, i: S.scene || 0 };
-  shell(`${boardPanel({ trace, group: scenes[0]?.group, boardable, tools: `<div class="lp-tools"><button class="lp-chip" data-lp="replay">${icon("replay")}<span>${esc(t("again"))}</span></button><button class="lp-chip" data-lp="auto" aria-pressed="false" id="lp-auto">${icon("play")}<span>${esc(t("autoplay"))}</span></button></div>` })}<section class="lp-coach" id="lp-coach"></section>`);
+  shell(`${boardPanel({ trace, group: scenes[0]?.group, boardable, art: scenes.some((x) => x.art), tools: `<div class="lp-tools"><button class="lp-chip" data-lp="replay">${icon("replay")}<span>${esc(t("again"))}</span></button><button class="lp-chip" data-lp="auto" aria-pressed="false" id="lp-auto">${icon("play")}<span>${esc(t("autoplay"))}</span></button></div>` })}<section class="lp-coach" id="lp-coach"></section>`);
   S.view = v;
   if (boardable) makeBoard(layout, false);
   showScene(v.i);
@@ -297,12 +301,20 @@ function showScene(i) {
   const last = v.i === v.scenes.length - 1;
   const coach = root.querySelector("#lp-coach");
   const friendTag = sc.friend ? `<button class="lp-tag ${sc.friend}" data-lp="explain" data-id="${sc.friend === "borrow" ? "borrow" : sc.friend}">${esc(t(`tag_${sc.friend}`))} <span aria-hidden="true">?</span></button>` : "";
-  const table = sc.table ? `<div class="lp-table" dir="ltr">${sc.table.map((r) => `<span><b>${esc(r[0])}</b> = ${esc(r[1])}</span>`).join("")}</div>` : "";
+  const table = sc.table ? `<div class="lp-table${sc.tableList ? " list" : ""}"${sc.tableList ? "" : ' dir="ltr"'}>${sc.table.map((r) => `<span><b>${esc(r[0])}</b> = ${esc(r[1])}</span>`).join("")}</div>` : "";
   coach.innerHTML = `<div class="lp-count" aria-hidden="true">${v.scenes.map((_, k) => `<i class="${k < v.i ? "done" : k === v.i ? "cur" : ""}"></i>`).join("")}</div><div class="lp-speech">${avatar(last && v.tag === "learn" ? "happy" : "happy")}<div class="lp-bubble" tabindex="-1"><div class="lp-bubble-top">${friendTag}<span class="lp-step">${v.i + 1}/${v.scenes.length}</span></div><h2>${esc(sc.title)}</h2>${sc.body ? `<p>${esc(sc.body)}</p>` : ""}${sc.math ? `<div class="lp-math" dir="ltr">${esc(sc.math)}</div>` : ""}${table}</div></div><div class="lp-actions"><button class="lp-btn ghost" data-lp="back" ${v.i === 0 ? "disabled" : ""}>${esc(t("back"))}</button><button class="lp-btn primary" data-lp="next" data-primary>${esc(last ? v.finishLabel : t("next"))}</button></div>`;
   root.querySelector("#lp-live").textContent = `${sc.title}. ${sc.body || ""}`;
   autoSpeak(`${sc.title}. ${sc.body || ""}`);
+  // picture slides (introduction) replace the live abacus
+  const artEl = root.querySelector("#lp-art");
+  if (artEl) {
+    artEl.hidden = !sc.art;
+    artEl.innerHTML = sc.art || "";
+    root.querySelector("#lp-board")?.toggleAttribute("hidden", !!sc.art);
+    root.querySelector(".lp-total")?.toggleAttribute("hidden", !!sc.art);
+  }
   // board
-  if (S.board && v.boardable) {
+  if (S.board && v.boardable && !sc.art) {
     if (sc.hl) {
       S.board.set(sc.from || sc.to);
       S.board.highlight(sc.hl);
@@ -576,7 +588,7 @@ function stageLearn(st) {
       layout: { rods: ex.rods, scale: ex.scale || 0 },
       boardable: true,
       tag: "learn",
-      finishLabel: st.nested ? t("backToLesson") : st.standalone ? t("done") : t("letsWatch"),
+      finishLabel: st.nested ? t("backToLesson") : st.standalone ? t("done") : S.lesson?.intro ? t("in_finish") : t("letsWatch"),
       onFinish: () => (st.nested ? popExplainer() : st.standalone ? closePlayer() : nextStage()),
     });
     return;
@@ -863,13 +875,14 @@ function showSolution() {
 function stageDone() {
   const q = S.q || { right: 0, wrong: 0, streak: 0, asked: 0 };
   const l = S.lesson;
+  if (l.intro) env.markLearned?.(l); // an orientation lesson: finishing it is the mastery
   const status = env.statusOf(l);
   const mastered = q.streak >= NEED || ["learned", "retained"].includes(status);
-  const stars = q.wrong === 0 ? 3 : q.wrong <= 2 ? 2 : 1;
+  const stars = l.intro || q.wrong === 0 ? 3 : q.wrong <= 2 ? 2 : 1;
   const next = env.nextLesson(l);
   const due = env.dueText(l);
   sfx.done();
-  shell(`<section class="lp-stage no-board done"><div class="lp-trophy" aria-hidden="true">${confetti()}</div></section><section class="lp-coach"><div class="lp-speech">${avatar(mastered ? "cheer" : "happy")}<div class="lp-bubble"><h2>${esc(mastered ? t("lessonDone") : t("keepGoing"))}</h2><p>${esc(mastered ? t("lessonDoneBody") : t("keepGoingBody"))}</p><div class="lp-stars" aria-label="${stars} / 3">${[1, 2, 3].map((n) => `<svg class="${n <= stars ? "on" : ""}" viewBox="0 0 24 24"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9z"/></svg>`).join("")}</div>${mastered ? `<div class="lp-sticker"><span class="sticker on c${l.order % 6}"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21"/><path d="m24 9 4.4 9 9.9 1.4-7.2 7 1.7 9.9L24 31.6l-8.8 4.7 1.7-9.9-7.2-7 9.9-1.4z"/></svg><b>${l.order + 1}</b></span><strong>${esc(t("stickerNew"))}</strong></div>` : ""}<p class="lp-fine">${esc(t("scoreLine", { right: q.right, total: q.asked }))}${due ? ` · ${esc(t("reviewOn", { d: due }))}` : ""}</p></div></div><div class="lp-actions col"><button class="lp-btn primary" data-lp="gonext" data-primary>${esc(next ? t("nextLesson") : t("backToPath"))}</button><button class="lp-btn ghost" data-lp="again">${esc(t("practiceMore"))}</button><button class="lp-btn ghost" data-lp="exit">${esc(t("backToPath"))}</button></div></section>`);
+  shell(`<section class="lp-stage no-board done"><div class="lp-trophy" aria-hidden="true">${confetti()}</div></section><section class="lp-coach"><div class="lp-speech">${avatar(mastered ? "cheer" : "happy")}<div class="lp-bubble"><h2>${esc(l.intro ? t("in_doneT") : mastered ? t("lessonDone") : t("keepGoing"))}</h2><p>${esc(l.intro ? t("in_doneB") : mastered ? t("lessonDoneBody") : t("keepGoingBody"))}</p><div class="lp-stars" aria-label="${stars} / 3">${[1, 2, 3].map((n) => `<svg class="${n <= stars ? "on" : ""}" viewBox="0 0 24 24"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9z"/></svg>`).join("")}</div>${mastered ? `<div class="lp-sticker"><span class="sticker on c${l.order % 6}"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21"/><path d="m24 9 4.4 9 9.9 1.4-7.2 7 1.7 9.9L24 31.6l-8.8 4.7 1.7-9.9-7.2-7 9.9-1.4z"/></svg><b>${l.order + 1}</b></span><strong>${esc(t("stickerNew"))}</strong></div>` : ""}${l.intro ? "" : `<p class="lp-fine">${esc(t("scoreLine", { right: q.right, total: q.asked }))}${due ? ` · ${esc(t("reviewOn", { d: due }))}` : ""}</p>`}</div></div><div class="lp-actions col"><button class="lp-btn primary" data-lp="gonext" data-primary>${esc(next ? t("nextLesson") : t("backToPath"))}</button>${l.intro ? "" : `<button class="lp-btn ghost" data-lp="again">${esc(t("practiceMore"))}</button>`}<button class="lp-btn ghost" data-lp="exit">${esc(t("backToPath"))}</button></div></section>`);
   S.board = null;
 }
 

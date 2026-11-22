@@ -227,6 +227,8 @@ export class Soroban {
     }
     for (const c of spec.cols || []) this.rodEls[c]?.classList.add("focus-rod");
     this.svg.querySelector(".sb-bar")?.classList.toggle("hl", !!spec.bar);
+    this.svg.querySelector(".sb-frame")?.classList.toggle("hl", !!spec.frame);
+    this.svg.querySelector(".sb-unit-dot")?.classList.toggle("hl", !!spec.dot);
     this.svg.querySelectorAll(".sb-label").forEach((n, c) => n.classList.toggle("hl", (spec.labels || []).includes(c)));
   }
 

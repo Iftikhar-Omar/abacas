@@ -9,6 +9,7 @@ const steps = [
   ['build', 'node', ['tools/build.mjs']],
   ['audit', 'node', ['tests/audit.mjs']],
   ['lessons', 'node', ['tests/sweep-lessons.mjs']],
+  ['intro', 'node', ['tests/intro.mjs']],
   ['flows', 'node', ['tests/flows.mjs']],
 ];
 let failed = 0;
