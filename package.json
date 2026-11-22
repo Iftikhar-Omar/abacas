@@ -7,8 +7,15 @@
   "scripts": {
     "dev": "node tools/dev-server.mjs",
     "build": "node tools/build.mjs",
-    "test": "node tests/run.mjs"
+    "test": "node tests/run.mjs",
+    "lint": "eslint src tests tools"
   },
-  "dependencies": { "three": "0.186.0" },
-  "devDependencies": { "esbuild": "^0.25.0", "playwright": "*" }
+  "dependencies": {
+    "three": "0.186.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "eslint": "^9.39.5",
+    "globals": "^17.14.0"
+  }
 }

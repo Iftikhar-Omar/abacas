@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="/css/soroban.css">
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js"}}</script>
+<style>body{font-family:Inter,sans-serif;background:#f5f7fd;margin:20px}.b{width:420px;height:360px;background:#fff;border-radius:16px;padding:16px;margin:10px;display:inline-block}</style></head><body>
+<div class="b" id="a"></div><div class="b" id="b"></div>
+<script type="module">
+import {Soroban,layoutFor} from '/src/soroban.js';
+const a=new Soroban(document.getElementById('a'),{rods:3,interactive:true});
+a.set([0,2,7]);
+const b=new Soroban(document.getElementById('b'),{rods:4,scale:1});
+b.set([0,0,8,5]); b.hintMove([0,0,8,5],[0,1,3,5]);
+window.a=a;window.b=b;
+</script></body></html>

@@ -1,6 +1,6 @@
 import { applyPrefs, readPrefs, sanitizePrefs, st, writePrefs } from './studio.js';
 import { extraConcepts, languages, skillName, stepText, tr } from './i18n.js';
-import { allLessons, concept, freshProgress, lessons, normalLessons, recordAttempt, units } from './curriculum.js';
+import { allLessons, concept, freshProgress, lessonFor, lessons, normalLessons, recordAttempt, units } from './curriculum.js';
 import { config } from './config.js';
 import { answerEquals, evaluate, normalize, parse, solve } from './engine.js';
 import { Playback, makeChallenge, presets, suggestNext, validateConfig } from './gym.js';
@@ -8,6 +8,10 @@ import { journeyCopy } from './journey-i18n.js';
 import { captureFocus, captureFormDrafts, focusWorkspace, restoreFocus, restoreFormDrafts } from './ui.js';
 import { createAssessment, handCompatible, scoreAssessment, unitReadiness } from './assessment.js';
 import { BeadModel } from './model.js';
+import { closePlayer, configurePlayer, openExplainer, openLesson as playLesson, playerOpen } from './player.js';
+import { explainerById, explainerIds } from './explainers.js';
+import { Soroban, layoutFor } from './soroban.js';
+import { P } from './player-i18n.js';
 import { actionSteps, freshQuestions, misconception } from './practice.js';
 
 var prefs = readPrefs();
@@ -92,10 +96,10 @@ var lessonIdea = (lesson) => {
   return part.idea?.[lang] || C(part.skill);
 };
 var words = {
-  normal: ["Normal path", "\u09B8\u09BE\u09A7\u09BE\u09B0\u09A3 \u09AA\u09A5"],
-  mastery: ["Mastery path", "\u09A6\u0995\u09CD\u09B7\u09A4\u09BE\u09B0 \u09AA\u09A5"],
+  normal: ["Starter path", "\u09B8\u09BE\u09A7\u09BE\u09B0\u09A3 \u09AA\u09A5"],
+  mastery: ["Full course", "\u09A6\u0995\u09CD\u09B7\u09A4\u09BE\u09B0 \u09AA\u09A5"],
   normalNote: [
-    "15 lessons, from your first bead to confident mental maths.",
+    "15 short lessons. From your first bead to mental maths.",
     "\u09AA\u09C1\u0981\u09A4\u09BF \u0997\u09CB\u09A8\u09BE \u09A5\u09C7\u0995\u09C7 \u09AE\u09A8\u09C7 \u09AE\u09A8\u09C7 \u0985\u0999\u09CD\u0995\u2014\u09E7\u09EB\u099F\u09BF \u09A7\u09BE\u09AA\u09C7\u0964"
   ],
   masteryNote: [
@@ -138,6 +142,7 @@ var words = {
 };
 var W = (k) => journeyCopy[lang]?.[k] || words[k]?.[lang === "bn" ? 1 : 0] || S(k);
 function setJourney(journey) {
+  closePlayer(true);
   if (!["normal", "mastery"].includes(journey)) return;
   stopAuto();
   closeDialog();
@@ -212,7 +217,8 @@ var icon = (name) => {
     unlock: "M8 10V7a5 5 0 0 1 9-3 M5 10h14v11H5z M12 14v3",
     lock: "M7 10V7a5 5 0 0 1 10 0v3 M5 10h14v11H5z M12 14v3",
     check: "m5 12 4 4L19 6",
-    star: "m12 3 3 6 6 1-4 5 1 6-6-3-6 3 1-6-4-5 6-1z"
+    star: "m12 3 3 6 6 1-4 5 1 6-6-3-6 3 1-6-4-5 6-1z",
+    gear: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"
   };
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] ? `<path d="${paths[name]}"/>` : '<circle cx="12" cy="12" r="8"/><path d="M12 11v6M12 7h.01"/>'}</svg>`;
 };
@@ -236,6 +242,7 @@ function cancelGym(reason = false) {
   }
 }
 function nav(view) {
+  closePlayer(true);
   if (view === "gym" && state.view === "gym") return;
   const previousView = state.view;
   state.lessonReview = null;
@@ -263,7 +270,7 @@ function shell() {
   const learned = path.filter(
     (l) => ["learned", "retained"].includes(progressStatus(l))
   ).length;
-  $("#app").innerHTML = `<a href="#main" class="skip-link">${S("skipToContent")}</a><aside class="sidebar"><a href="#learn" class="brand" aria-label="Abacus Academy"><span class="brand-mark"><i></i><i></i><i></i></span><span>abacus<span class="brand-sub">ACADEMY</span></span></a><nav aria-label="${T("pathway")}">${["learn", "solver", "gym", "progress", "account"].map((k) => `<button data-action="nav" data-view="${k}" aria-label="${T(k)}" title="${T(k)}" class="nav-item ${state.view === k ? "selected" : ""}" aria-current="${state.view === k ? "page" : "false"}">${icon(k)}<span>${S("nav" + k)}</span></button>`).join("")}</nav><div class="sidebar-bottom"><div class="mini-progress"><span>${T("learned")}</span><b>${learned} / ${path.length}</b><progress value="${learned}" max="${path.length}"></progress></div><small>Abacus Studio \xB7 4.4</small></div></aside><div class="main-shell"><header class="topbar"><div class="breadcrumb">${T(state.view)} <span class="separator">/</span> <span>${state.view === "learn" && state.lesson ? esc(L(state.lesson)) : T("intro")}</span></div><div class="top-actions">${btn(icon("info"), "guide", "icon-button", `aria-label="${S("guide")}" title="${S("guide")}"`)}${btn("\u2699", "settings", "icon-button", `aria-label="${S("settings")}" title="${S("settings")}"`)}<span class="session-badge">${state.user ? esc(state.user.username) : T("guest")}</span><label class="language"><span aria-hidden="true">\u25CE</span><select id="language" aria-label="${S("chooseLanguage")}">${languages.map(([code, name]) => `<option value="${code}" ${code === lang ? "selected" : ""}>${name}</option>`).join("")}</select></label></div></header><main id="main" tabindex="-1"></main></div>`;
+  $("#app").innerHTML = `<a href="#main" class="skip-link">${S("skipToContent")}</a><aside class="sidebar"><a href="#learn" class="brand" aria-label="Abacus Academy"><span class="brand-mark"><i></i><i></i><i></i></span><span>abacus<span class="brand-sub">ACADEMY</span></span></a><nav aria-label="${T("pathway")}">${["learn", "solver", "gym", "progress", "account"].map((k) => `<button data-action="nav" data-view="${k}" aria-label="${T(k)}" title="${T(k)}" class="nav-item ${state.view === k ? "selected" : ""}" aria-current="${state.view === k ? "page" : "false"}">${icon(k)}<span>${S("nav" + k)}</span></button>`).join("")}</nav><div class="sidebar-bottom"><div class="mini-progress"><span>${T("learned")}</span><b>${learned} / ${path.length}</b><progress value="${learned}" max="${path.length}"></progress></div><small>Abacus Academy \xB7 v5.0</small></div></aside><div class="main-shell"><header class="topbar"><h2 class="top-title">${T(state.view)}</h2><div class="top-actions"><span class="session-badge">${state.user ? esc(state.user.username) : T("guest")}</span><label class="language"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg><select id="language" aria-label="${S("chooseLanguage")}">${languages.map(([code, name]) => `<option value="${code}" ${code === lang ? "selected" : ""}>${name}</option>`).join("")}</select></label>${btn(icon("info"), "guide", "icon-button", `aria-label="${S("guide")}" title="${S("guide")}"`)}${btn(icon("gear"), "settings", "icon-button", `aria-label="${S("settings")}" title="${S("settings")}"`)}</div></header><main id="main" tabindex="-1"></main></div>`;
 }
 function render() {
   const active = captureFocus(), previousKey = $("#main")?.dataset.renderKey, key = `${state.view}-${state.lesson?.id}-${state.phase}-${state.answerIndex}-${state.practiceCursor}-${state.mentalStage}-${state.assessment?.id}-${state.assessment?.index}-${state.watchPart}-${state.view === "solver" ? state.solver.source : ""}`;
@@ -486,7 +493,7 @@ function renderLearn() {
     ([k, t, n]) => `<button data-action="track" data-track="${k}" aria-pressed="${state.track === k}" class="${state.track === k ? "selected" : ""}"><small>${n}</small><span>${S(t)}</span></button>`
   ).join(
     ""
-  )}</div></details><section class="discovery-card"><div class="discovery-copy"><span class="pill">${T(progressStatus(r))} \xB7 ${r.minutes} ${T("minutes")}</span><h2>${esc(L(r))}</h2><p>${esc(lessonIdea(r))}</p>${btn(`${T("start")} ${icon("learn")}`, "openLesson", "primary", `data-id="${r.id}"`)}</div><div class="discovery-model"><div class="model-caption"><span>${T(state.track === "fingers" ? "hands" : "abacus")}</span><b dir="ltr">${r.example}</b></div><div id="hero-model" class="model"></div><p>${S("guideTip")}</p></div></section><div class="path-heading"><h2>${T("allLessons")}</h2><span>${S("fresh")}</span></div><div class="curriculum">${state.journey === "normal" ? `<div class="normal-lesson-list">${list.map((l, i) => `<button data-action="openLesson" data-id="${l.id}" class="normal-lesson ${l.id === r.id ? "recommended" : ""}"><span class="lesson-number">${["learned", "retained"].includes(progressStatus(l)) ? icon("check") : String(i + 1).padStart(2, "0")}</span><span><b>${esc(L(l))}</b><small>${l.parts.length} ${W("ideas")} \xB7 ${l.minutes} ${T("minutes")}</small></span><span class="lesson-status">${T(progressStatus(l))}</span></button>`).join("")}</div>` : units.map((u, i) => {
+  )}</div></details><section class="discovery-card"><div class="discovery-copy"><span class="pill">${r === list[0] && !completed ? P("startHere", lang) : T(progressStatus(r))} \xB7 ${r.minutes} ${T("minutes")}</span><h2>${esc(L(r))}</h2><p>${esc(lessonIdea(r))}</p>${btn(`${T("start")} ${icon("learn")}`, "openLesson", "primary", `data-id="${r.id}"`)}</div><div class="discovery-model"><div class="model-caption"><span>${T(state.track === "fingers" ? "hands" : "abacus")}</span><b dir="ltr">${r.example}</b></div><div id="hero-model" class="model"></div><p>${S("guideTip")}</p></div></section><div class="ideas-shelf"><div class="path-heading"><h2>${P("helpfulIdeas", lang)}</h2><span>${P("helpfulIdeasNote", lang)}</span></div><div class="idea-row">${explainerIds.map((id) => { const e = explainerById(id, lang); return `<button class="idea-card" data-action="explainer" data-id="${id}"><span class="idea-art idea-${id}" aria-hidden="true">${ideaArt(id)}</span><b>${esc(e.title)}</b><small>${esc(e.blurb)}</small></button>`; }).join("")}</div></div><div class="path-heading"><h2>${T("allLessons")}</h2></div><div class="curriculum">${state.journey === "normal" ? `<div class="normal-lesson-list">${list.map((l, i) => `<button data-action="openLesson" data-id="${l.id}" class="normal-lesson ${l.id === r.id ? "recommended" : ""}"><span class="lesson-number">${["learned", "retained"].includes(progressStatus(l)) ? icon("check") : String(i + 1).padStart(2, "0")}</span><span><b>${esc(L(l))}</b><small>${l.parts.length} ${W("ideas")} \xB7 ${l.minutes} ${T("minutes")}</small></span><span class="lesson-status">${T(progressStatus(l))}</span></button>`).join("")}</div>` : units.map((u, i) => {
     const ll = list.filter((l) => l.unit === i);
     if (!ll.length) return "";
     const done = ll.filter(
@@ -495,54 +502,20 @@ function renderLearn() {
     const source = state.track === "mental" ? "mental" : state.track === "fingers" ? "hands" : "abacus", ready = unitReadiness(state.progress.attempts, i, source);
     return `<details class="unit" ${r.unit === i ? "open" : ""}><summary><span class="unit-number">${u[2]}</span><div><small>${T("learn")} ${i + 1}</small><h3>${lang === "en" ? u[0] : lang === "bn" ? u[1] : skillName(u[3], lang)}</h3></div><span class="unit-count">${done} / ${ll.length}</span><span class="chevron">\u2304</span></summary><div class="lesson-grid">${ll.map((l, j) => `<button class="lesson-tile ${l.id === r.id ? "recommended" : ""}" data-action="openLesson" data-id="${l.id}"><span class="lesson-symbol">${["learned", "retained"].includes(progressStatus(l)) ? icon("check") : String(j + 1).padStart(2, "0")}</span><span class="lesson-title">${esc(L(l))}</span><small>${l.minutes} ${T("minutes")} \xB7 ${T(progressStatus(l))}</small></button>`).join("")}</div><div class="unit-check-row">${btn(S("checkUnit"), "unitCheck", "secondary", `data-unit="${i}"`)}<span>${ready.retained ? T("retained") : ready.accuracyReady ? S("accuracyReady") : ""}</span></div></details>`;
   }).join("")}</div>`;
-  const trace = solve(r.example), f = trace.steps.find(
-    (s) => s.after.raw !== null && BigInt(s.after.raw) > 0n
-  ) || trace.steps[0];
-  heroModel = new BeadModel($("#hero-model"), {
-    onLocked: () => openLesson(r.id),
-    prefs: () => prefs,
-    lang: () => lang
-  });
-  heroModel.mode = state.track === "fingers" ? "hands" : "abacus";
-  heroModel.set(f.after);
+  const trace = solve(r.example), start = trace.steps.find((x) => x.kind === "operation")?.before || trace.steps.at(-1).after;
+  const layout = layoutFor(trace.steps.flatMap((x) => [x.before, x.after]));
+  const hero = new Soroban($("#hero-model"), { rods: layout.rods, scale: layout.scale, labels: true, t: (k) => P(k, lang) });
+  if (!hero.set(start)) $("#hero-model").innerHTML = `<div class="hero-expr" dir="ltr">${esc(r.example.replaceAll("*", "\xD7").replaceAll("/", "\xF7"))}</div>`;
+  heroModel = { dispose() {} };
 }
-function openLesson(id, fromSolver = false) {
+function openLesson(id) {
   stopAuto();
+  closeDialog();
   const l = allLessons.find((l2) => l2.id === id);
   if (!l) return;
-  if (!fromSolver) state.lessonReview = null;
-  if (fromSolver) {
-    state.returnStack.push({
-      lessonReview: state.lessonReview,
-      trace: state.solver,
-      index: state.solverIndex,
-      mode: state.modelMode,
-      expanded: true
-    });
-  }
   cancelGym();
-  state.lesson = l;
-  state.modelFocus = state.focus = false;
-  state.watchPart = 0;
-  state.lessonTrace = solve(l.parts?.[0].example || l.example);
-  state.lessonIndex = 0;
-  state.phase = "watch";
-  state.view = "learn";
-  state.locked = true;
-  state.explore = null;
-  state.feedback = null;
-  state.answerIndex = 0;
-  state.hinted = false;
-  state.modelMode = l.id === "hands" || state.track === "fingers" ? "hands" : "abacus";
-  state.lessonQuestions = freshQuestions(l, Date.now(), state.modelMode);
-  state.answerStart = 0;
-  state.firstError = null;
-  state.practice = null;
-  state.checkpointFeedback = null;
-  state.mentalStage = "see";
-  render();
-  focusWorkspace();
-  window.scrollTo(0, 0);
+  state.lessonReview = null;
+  playLesson(l);
 }
 function returnSolver() {
   const saved = state.returnStack.pop();
@@ -1561,24 +1534,9 @@ function languageSelect() {
 }
 function showSetup() {
   dialog(
-    S("welcome"),
-    `<p>${S("setupNote")}</p>${languageSelect()}${preferenceSelect(
-      "density",
-      "layout",
-      [
-        ["auto", "auto"],
-        ["compact", "compact"],
-        ["chunky", "chunky"]
-      ]
-    )}${preferenceSelect(
-      "surface",
-      "palette",
-      Object.keys({ classic: 1, wood: 1, cyber: 1, orchid: 1 }).map((k) => [
-        k,
-        k
-      ])
-    )}<p>${T("abacus")} \xB7 ${S("guideTip")}</p>`,
-    `${btn(S("skip"), "skipSetup", "secondary")}${btn(S("done"), "finishSetup", "primary")}`
+    P("welcomeTitle", lang),
+    `<p class="welcome-line">${P("welcomeLine", lang)}</p>${languageSelect()}<p class="fine">${S("setupNote")}</p>`,
+    btn(P("startLearning", lang), "finishSetup", "primary")
   );
 }
 function showModelTools() {
@@ -1675,6 +1633,7 @@ document.addEventListener(
     const a = el.dataset.action;
     const actions = {
       journey: () => setJourney(el.dataset.journey),
+      explainer: () => openExplainer(el.dataset.id),
       workspaceMenu: showWorkspaceMenu,
       retryQuestion,
       lessonPlan: showLessonPlan,
@@ -1950,7 +1909,7 @@ document.addEventListener("click", (e) => {
       break;
     }
     case "relatedLesson":
-      openLesson(el.dataset.id, true);
+      openLesson(el.dataset.id);
       break;
     case "returnSolver":
       returnSolver();
@@ -2274,10 +2233,54 @@ window.addEventListener("pagehide", () => cancelGym());
 window.addEventListener("hashchange", () => {
   const view = location.hash.slice(1);
   if (["learn", "solver", "gym", "progress", "account"].includes(view)) {
+    closePlayer(true);
     if (view === "learn") state.lesson = null;
     nav(view);
   }
 });
+const ideaArt = (id) => {
+  const beads = { parts: [[14, 16], [14, 30], [34, 30]], places: [[12, 30], [24, 30], [36, 30]], little: [[14, 15], [14, 30], [34, 30]], big: [[14, 30], [34, 14], [34, 30]], borrow: [[34, 30], [14, 14], [14, 30]] }[id] || [];
+  return `<svg viewBox="0 0 48 48"><rect x="4" y="5" width="40" height="38" rx="7" class="a-frame"/><path d="M4 21h40" class="a-bar"/>${[14, 34].map((x) => `<path d="M${x} 7v34" class="a-rod"/>`).join("")}${beads.map(([x, y], i) => `<ellipse cx="${x}" cy="${y}" rx="7" ry="3.6" class="${y < 21 ? "a-top" : "a-low"}"/>`).join("")}</svg>`;
+};
+function nextLessonAfter(l) {
+  if (l.journey === "normal") return l.order === normalLessons.length - 1 ? "mastery" : normalLessons.find((x) => x.order > l.order);
+  return lessons.find((x) => x.order > l.order) || null;
+}
+configurePlayer({
+  getLang: () => lang,
+  solve,
+  answerEquals,
+  freshQuestions: (l, seed) => freshQuestions(l, seed, "abacus"),
+  recordAttempt: (payload) => {
+    recordAttempt(state.progress, payload);
+    saveProgress();
+  },
+  titleOf: L,
+  ideaOf: (part) => part.idea?.[lang] || C(part.skill),
+  statusOf: progressStatus,
+  track: () => state.track,
+  nextLesson: (l) => nextLessonAfter(l),
+  dueText: (l) => {
+    const due = state.progress.lessons[l.id]?.due;
+    return due ? new Intl.DateTimeFormat(lang, { month: "short", day: "numeric" }).format(new Date(due)) : "";
+  },
+  read,
+  onClose: () => {
+    state.feedback = null;
+    render();
+  },
+  onNext: (l) => {
+    const n = nextLessonAfter(l);
+    if (n === "mastery") {
+      closePlayer(true);
+      setJourney("mastery");
+    } else if (n) playLesson(n);
+    else closePlayer();
+  },
+});
+// test hooks (harmless in production): let automated tests open / close lessons directly
+globalThis.__openLesson = (id) => openLesson(id);
+globalThis.__closeLesson = () => closePlayer(true);
 render();
 queueMicrotask(() => {
   if (!prefs.setupSeen) showSetup();

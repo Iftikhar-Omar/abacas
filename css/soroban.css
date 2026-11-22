@@ -1,0 +1,217 @@
+/* File: soroban.css
+   Directory: css/
+   Styles for the SVG soroban (src/soroban.js). Colours are CSS variables so themes can restyle it. */
+:root {
+  --sb-frame: #25356e;
+  --sb-inner: #f4f6ff;
+  --sb-frame-hi: #34469a;
+  --sb-rod: #c5cde6;
+  --sb-top: #e8920f;
+  --sb-top-hi: #ffc861;
+  --sb-low: #3458db;
+  --sb-low-hi: #7f97f5;
+  --sb-hl: #12b886;
+  --sb-bar: #17224d;
+  --sb-ink: #18253d;
+}
+:root[data-theme="dark"] {
+  --sb-frame: #0f1736;
+  --sb-frame-hi: #1d2a5c;
+  --sb-rod: #8d99c6;
+  --sb-bar: #0a1030;
+  --sb-ink: #e9eeff;
+  --sb-inner: #202e48;
+}
+.soroban {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  display: block;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  overflow: visible;
+  user-select: none;
+}
+.soroban:focus:not(:focus-visible) {
+  outline: none;
+}
+.soroban:focus-visible {
+  outline: 3px solid var(--blue, #3458db);
+  outline-offset: 6px;
+  border-radius: 14px;
+}
+.sb-frame {
+  fill: var(--sb-inner);
+  stroke: var(--sb-frame);
+  stroke-width: 9;
+}
+.sb-bar {
+  fill: var(--sb-frame);
+}
+.sb-rod-line {
+  stroke: var(--sb-rod);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+.sb-rod-glow {
+  fill: transparent;
+  transition: fill 0.25s;
+}
+.sb-rod.focus-rod .sb-rod-glow {
+  fill: color-mix(in srgb, var(--sb-hl) 11%, transparent);
+}
+.sb-rod.kbd-rod .sb-rod-glow {
+  fill: color-mix(in srgb, var(--blue, #3458db) 14%, transparent);
+}
+.sb-unit-dot {
+  fill: #ffd166;
+  stroke: var(--sb-bar);
+  stroke-width: 1.5;
+}
+.sb-digit-bg {
+  fill: #fff;
+  stroke: #d6dcf2;
+}
+.sb-digit {
+  font: 800 15px/1 Inter, system-ui, sans-serif;
+  fill: var(--sb-ink);
+}
+.sb-label {
+  font: 700 13px/1 Inter, system-ui, sans-serif;
+  fill: #62708a;
+}
+.sb-bead {
+  transition: transform 0.38s cubic-bezier(0.3, 1.25, 0.4, 1);
+  transform-box: fill-box;
+}
+.sb-bead-body {
+  stroke: rgba(10, 20, 60, 0.45);
+  stroke-width: 1.4;
+  opacity: 0.72;
+  transition: opacity 0.2s;
+}
+.sb-bead.on .sb-bead-body {
+  opacity: 1;
+  filter: drop-shadow(0 3px 2px rgba(10, 20, 60, 0.3));
+}
+.sb-shine {
+  fill: rgba(255, 255, 255, 0.55);
+}
+.sb-ring {
+  stroke: transparent;
+  stroke-width: 4;
+}
+.soroban.interactive .sb-bead {
+  cursor: pointer;
+}
+.soroban.interactive .sb-bead:hover .sb-bead-body {
+  opacity: 1;
+}
+.sb-bead.hl .sb-ring {
+  stroke: var(--sb-hl);
+  animation: sbPulse 1.15s ease-in-out infinite;
+}
+.sb-bead.hl .sb-bead-body {
+  opacity: 1;
+}
+@keyframes sbPulse {
+  50% {
+    stroke-width: 9;
+    stroke-opacity: 0.35;
+  }
+}
+.sb-arrow-path {
+  stroke: var(--sb-hl);
+  stroke-width: 4;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sb-arrow {
+  animation: sbBob 0.9s ease-in-out infinite;
+}
+@keyframes sbBob {
+  50% {
+    translate: 0 5px;
+  }
+}
+.soroban.flash-ok .sb-frame {
+  animation: sbOk 0.7s;
+}
+.soroban.flash-no {
+  animation: sbShake 0.4s;
+}
+@keyframes sbOk {
+  40% {
+    stroke: var(--sb-hl);
+  }
+}
+@keyframes sbShake {
+  25% {
+    transform: translateX(-6px);
+  }
+  75% {
+    transform: translateX(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sb-bead,
+  .sb-arrow,
+  .sb-bead.hl .sb-ring,
+  .soroban.flash-no {
+    transition: none;
+    animation: none;
+  }
+}
+.sb-bar.hl {
+  fill: var(--sb-hl);
+  animation: sbBarPulse 1.1s ease-in-out infinite;
+}
+@keyframes sbBarPulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+.sb-label.hl {
+  fill: var(--sb-hl);
+  font-size: 16px;
+}
+
+/* ---------- finger board ---------- */
+.fg-skin {
+  fill: #f2c9a5;
+  stroke: #b98660;
+  stroke-width: 3;
+  transition: fill 0.2s;
+}
+.fg-palm {
+  fill: #f6d3b3;
+  stroke: #b98660;
+  stroke-width: 3;
+}
+.fg-finger,
+.fg-thumb {
+  transition: transform 0.4s cubic-bezier(0.3, 1.25, 0.4, 1);
+}
+.fg-finger.on .fg-skin {
+  fill: #9fb4ff;
+}
+.fg-thumb.on .fg-skin {
+  fill: #ffcf7a;
+}
+.fg-ring {
+  stroke: transparent;
+  stroke-width: 5;
+}
+.fg-finger.hl .fg-ring,
+.fg-thumb.hl .fg-ring {
+  stroke: var(--sb-hl);
+  animation: sbPulse 1.15s ease-in-out infinite;
+}
+.soroban.fingers.interactive .fg-finger,
+.soroban.fingers.interactive .fg-thumb {
+  cursor: pointer;
+}
+.fg-digit {
+  font-size: 22px;
+}
