@@ -14,7 +14,7 @@ export function sanitizePrefs(p = {}) {
     renderer: ["3d", "2d"]
   }))
     if (values.includes(p[k])) r[k] = p[k];
-  for (const k of ["motion", "lowPower", "guide", "setupSeen", "fingerSeen"])
+  for (const k of ["motion", "lowPower", "guide", "setupSeen", "fingerSeen", "autoRead", "sfx"])
     if (typeof p[k] === "boolean") r[k] = p[k];
   if ([500, 1e3, 2e3, 3e3].includes(Number(p.duration)))
     r.duration = Number(p.duration);
@@ -87,6 +87,8 @@ export const defaults = {
   decimalColumns: 0,
   customColor: "#536be8",
   guide: true,
+  autoRead: false,
+  sfx: true,
   setupSeen: false,
   fingerSeen: false
 };

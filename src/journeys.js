@@ -11,16 +11,25 @@ export function createNormalLessons(catalog, ideaFor) {
       "Meet your abacus",
       "\u099A\u09B2\u09CB \u09AA\u09C1\u0981\u09A4\u09BF \u0997\u09C1\u09A8\u09BF",
       "place",
-      ["zero", "place", "five-bead", "digits"],
-      ["place", "five-bead", "digits"],
-      6
+      ["place"],
+      ["place"],
+      4
+    ],
+    [
+      "bigbead",
+      "The big bead",
+      "\u09AC\u09A1\u09BC \u09AA\u09C1\u0981\u09A4\u09BF\u099F\u09BE",
+      "five-bead",
+      ["five-bead", "digits"],
+      ["five-bead", "digits"],
+      4
     ],
     [
       "places",
       "Ones, tens and fingers",
       "\u098F\u0995\u0995\u09C7\u09B0 \u09AA\u09BE\u09B6\u09C7 \u09A6\u09B6\u0995",
       "place",
-      ["tens", "hands"],
+      ["hands"],
       ["tens", "hands", "digits"],
       6
     ],

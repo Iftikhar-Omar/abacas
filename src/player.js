@@ -15,6 +15,8 @@ import { buildScenes, pretty, setFractionStyle, taskScenes } from "./coach.js";
 import { explainerFor, explainerById } from "./explainers.js";
 import { P } from "./player-i18n.js";
 import { FingerBoard } from "./fingers.js";
+import { scriptFor } from "./foundations.js";
+import { sfx } from "./sfx.js";
 import { Soroban, layoutFor, snapshotToDigits } from "./soroban.js";
 
 let env = null;
@@ -64,6 +66,12 @@ function handsWording(scenes, layout) {
 function buildPlan(lesson, seenIdeas) {
   const parts = lesson.parts || [lesson];
   const stages = [];
+  const script = scriptFor(lesson.id);
+  if (script) stages.push({ type: "script" });
+  if (script && !script.keepParts) {
+    stages.push({ type: "practice" }, { type: "done" });
+    return stages;
+  }
   parts.forEach((part, i) => {
     stages.push({ type: "learn", part: i });
     stages.push({ type: "watch", part: i });
@@ -93,7 +101,8 @@ export function openLesson(lesson, { startStage = 0 } = {}) {
     stack: [],
   };
   setFractionStyle(lesson.skill === "fractions" || (lesson.parts || []).some((p) => p.skill === "fractions"));
-  S.parts = (lesson.parts || [lesson]).map(preparePart);
+  S.scriptDef = scriptFor(lesson.id);
+  S.parts = S.scriptDef && !S.scriptDef.keepParts ? [] : (lesson.parts || [lesson]).map(preparePart);
   S.plan = buildPlan(lesson);
   mount();
   enterStage();
@@ -153,6 +162,7 @@ export function closePlayer(silent = false) {
 export function rerenderPlayer() {
   if (!root || !S) return;
   if (S.parts.length) S.parts = S.lesson.parts ? S.lesson.parts.map(preparePart) : [preparePart(S.lesson)];
+  if (S.plan[S.stage]?.type === "script") S.sx = Math.min(S.sx || 0, S.scriptDef.steps.length - 1);
   enterStage(true);
 }
 
@@ -187,7 +197,7 @@ function mount() {
   document.body.classList.add("lp-open");
 }
 
-const stageLabel = (st) => t(`stage_${st.type}`);
+const stageLabel = (st) => t(`stage_${st.type === "script" ? "learn" : st.type}`);
 
 function chrome() {
   const l = S.lesson;
@@ -230,7 +240,7 @@ function makeBoard(layout, interactive, onChange) {
   const host = root.querySelector("#lp-board");
   if (!host) return (S.board = null);
   const Board = layout.fingers ? FingerBoard : Soroban;
-  S.board = new Board(host, { rods: layout.rods, scale: layout.scale, interactive, onChange, t });
+  S.board = new Board(host, { rods: layout.rods, scale: layout.scale, interactive, onChange: (info) => { sfx.tap(); onChange?.(info); }, t });
   return S.board;
 }
 
@@ -247,7 +257,7 @@ function enterStage(keepScene = false) {
   const st = S.plan[S.stage];
   if (!keepScene) S.scene = 0;
   if (st.type !== "try") S.try = null;
-  ({ learn: stageLearn, watch: stageWatch, try: stageTry, practice: stagePractice, done: stageDone, solve: stageSolve, check: stageCheck })[st.type](st);
+  ({ learn: stageLearn, watch: stageWatch, try: stageTry, practice: stagePractice, done: stageDone, solve: stageSolve, check: stageCheck, script: stageScript })[st.type](st);
   root.querySelector("[data-primary]")?.focus({ preventScroll: true });
 }
 
@@ -284,6 +294,7 @@ function showScene(i) {
   const table = sc.table ? `<div class="lp-table" dir="ltr">${sc.table.map((r) => `<span><b>${esc(r[0])}</b> = ${esc(r[1])}</span>`).join("")}</div>` : "";
   coach.innerHTML = `<div class="lp-count" aria-hidden="true">${v.scenes.map((_, k) => `<i class="${k < v.i ? "done" : k === v.i ? "cur" : ""}"></i>`).join("")}</div><div class="lp-speech">${avatar(last && v.tag === "learn" ? "happy" : "happy")}<div class="lp-bubble" tabindex="-1"><div class="lp-bubble-top">${friendTag}<span class="lp-step">${v.i + 1}/${v.scenes.length}</span></div><h2>${esc(sc.title)}</h2>${sc.body ? `<p>${esc(sc.body)}</p>` : ""}${sc.math ? `<div class="lp-math" dir="ltr">${esc(sc.math)}</div>` : ""}${table}</div></div><div class="lp-actions"><button class="lp-btn ghost" data-lp="back" ${v.i === 0 ? "disabled" : ""}>${esc(t("back"))}</button><button class="lp-btn primary" data-lp="next" data-primary>${esc(last ? v.finishLabel : t("next"))}</button></div>`;
   root.querySelector("#lp-live").textContent = `${sc.title}. ${sc.body || ""}`;
+  autoSpeak(`${sc.title}. ${sc.body || ""}`);
   // board
   if (S.board && v.boardable) {
     if (sc.hl) {
@@ -349,6 +360,130 @@ function stageSolve() {
   const idx = scenes.findIndex((sc) => sc.first <= S.at && sc.last >= S.at);
   S.scene = idx > 0 ? idx : 0;
   sceneViewer({ scenes, trace, layout, boardable, tag: "solution", finishLabel: t("done"), onFinish: () => closePlayer() });
+}
+
+/* ------------------------------------------------------------------ Script (child-first lessons) */
+
+function stageScript() {
+  S.sx = S.sx || 0;
+  S.cur = S.cur || Array(S.scriptDef.rods).fill(0);
+  drawScriptStep();
+}
+
+function drawScriptStep() {
+  const def = S.scriptDef;
+  const st = def.steps[S.sx];
+  const key = `fd_${def.id}_${S.sx + 1}`;
+  const layout = { rods: def.rods, scale: 0 };
+  const start = st.from || st.show || S.cur;
+  const last = S.sx === def.steps.length - 1;
+  const isDo = st.kind === "do";
+  const sc = (S.script = { st, key, wrong: 0, done: false, start: start.slice() });
+  const dots = `<div class="lp-count" aria-hidden="true">${def.steps.map((_, k) => `<i class="${k < S.sx ? "done" : k === S.sx ? "cur" : ""}"></i>`).join("")}</div>`;
+  const kicker = st.kind === "do" ? t("yourTurn") : st.kind === "ask" ? t("quickQuestion") : t("boSays");
+  const choices = st.kind === "ask" ? `<div class="lp-choices" role="group" aria-label="${esc(t("pickOne"))}">${st.choices.map((c) => `<button class="lp-choice" data-lp="choice" data-v="${c}" dir="ltr">${c}</button>`).join("")}</div>` : "";
+  const tools = isDo ? `<div class="lp-tools"><button class="lp-chip" data-lp="scriptReset">${icon("reset")}<span>${esc(t("startOver"))}</span></button></div>` : "";
+  const actions = st.kind === "ask" ? "" : isDo ? `<button class="lp-btn ghost" data-lp="scriptShow">${esc(t("showMeInstead"))}</button>` : `<button class="lp-btn ghost" data-lp="scriptBack" ${S.sx === 0 ? "disabled" : ""}>${esc(t("back"))}</button><button class="lp-btn primary" data-lp="scriptNext" data-primary>${esc(last ? t("fd_great") : S.sx === 0 ? t("fd_lets") : t("next"))}</button>`;
+  shell(`${boardPanel({ trace: null, boardable: true, tools })}<section class="lp-coach" id="lp-coach">${dots}<div class="lp-speech">${avatar(S.sx === 0 ? "cheer" : "happy")}<div class="lp-bubble" id="lp-bubble"><div class="lp-bubble-top"><span class="lp-kicker">${esc(kicker)}</span><span class="lp-step">${S.sx + 1}/${def.steps.length}</span></div><h2>${esc(t(`${key}_t`))}</h2><p>${esc(t(`${key}_b`))}</p>${st.math ? `<div class="lp-math" dir="ltr">${esc(st.math)}</div>` : ""}</div></div>${choices}<div class="lp-feedback" id="lp-fb" role="status"></div><div class="lp-actions">${actions}</div></section>`);
+  makeBoard(layout, isDo, isDo ? onScriptChange : null);
+  S.board.set(start);
+  setTotal(S.board.valueOf(start));
+  if (isDo) {
+    if (st.hintMove) S.board.hintMove(start, st.target);
+    else if (st.hint) S.board.highlight(st.hint);
+    if (st.free) sc.free = true;
+  } else if (st.kind === "say") {
+    if (st.hl) S.board.highlight(st.hl);
+    if (st.to && !eq(st.to, start)) {
+      if (!st.hl) S.board.hintMove(start, st.to);
+      later(() => {
+        S.board.set(st.to);
+        setTotal(S.board.valueOf(st.to));
+      }, reduced() ? 0 : 900);
+    }
+  }
+  const final = st.to || st.show || start;
+  if (st.kind === "say") S.cur = final.slice();
+  root.querySelector("#lp-live").textContent = `${t(`${key}_t`)}. ${t(`${key}_b`)}`;
+  autoSpeak(`${t(`${key}_t`)}. ${t(`${key}_b`)}`);
+  root.querySelector("[data-primary]")?.focus({ preventScroll: true });
+}
+
+function scriptSuccess(digits) {
+  const sc = S.script;
+  if (sc.done) return;
+  sc.done = true;
+  S.cur = digits.slice();
+  const { st, key } = sc;
+  const fb = root.querySelector("#lp-fb");
+  S.board.clearHints();
+  S.board.flash("ok");
+  sfx.ok();
+  root.querySelector(".bo")?.replaceWith(htmlNode(avatar("cheer")));
+  const okT = st.kind === "ask" ? t(pick(["nice", "great", "yes"])) : t(`${key}_ok`);
+  const okB = t(`${key}_okb`);
+  root.querySelector("#lp-bubble").innerHTML = `<div class="lp-bubble-top"><span class="lp-kicker">${esc(t("nice"))}</span><span class="lp-step">${S.sx + 1}/${S.scriptDef.steps.length}</span></div><h2>${esc(okT)}</h2><p>${esc(okB === `${key}_okb` ? "" : okB)}</p>${st.math ? `<div class="lp-math" dir="ltr">${esc(st.math)}</div>` : ""}`;
+  fb.className = "lp-feedback";
+  fb.textContent = "";
+  const last = S.sx === S.scriptDef.steps.length - 1;
+  root.querySelector(".lp-actions").innerHTML = `<button class="lp-btn primary" data-lp="scriptNext" data-primary>${esc(last ? t("fd_great") : t("fd_great"))}</button>`;
+  root.querySelector("[data-primary]").focus({ preventScroll: true });
+  root.querySelector("#lp-live").textContent = `${okT}. ${okB}`;
+  autoSpeak(`${okT}. ${okB === `${key}_okb` ? "" : okB}`);
+}
+
+function onScriptChange({ digits }) {
+  const sc = S.script;
+  if (!sc || sc.done) return;
+  const st = sc.st;
+  setTotal(S.board.valueOf(digits));
+  if (st.free) {
+    if (!eq(digits, sc.start)) scriptSuccess(digits);
+    return;
+  }
+  if (eq(digits, st.target)) return scriptSuccess(digits);
+  const fb = root.querySelector("#lp-fb");
+  if (eq(digits, sc.start)) {
+    fb.className = "lp-feedback";
+    fb.textContent = "";
+    return;
+  }
+  sc.wrong++;
+  sfx.no();
+  const nudge = t(`${sc.key}_nudge`);
+  fb.className = "lp-feedback no";
+  fb.innerHTML = `<b>${esc(t("fd_almost", { v: S.board.valueOf(digits) }))}</b> ${esc(nudge === `${sc.key}_nudge` ? "" : nudge)}`;
+  root.querySelector(".bo")?.replaceWith(htmlNode(avatar("think")));
+  if (sc.wrong >= 1) S.board.hintMove(digits, st.target);
+}
+
+function scriptChoice(btn) {
+  const sc = S.script;
+  if (sc.done) return;
+  const v = Number(btn.dataset.v);
+  if (v === sc.st.answer) {
+    root.querySelectorAll(".lp-choice").forEach((b) => (b.disabled = true));
+    btn.classList.add("right");
+    scriptSuccess(sc.st.show || S.cur);
+  } else {
+    sfx.no();
+    btn.disabled = true;
+    btn.classList.add("wrong");
+    const fb = root.querySelector("#lp-fb");
+    fb.className = "lp-feedback no";
+    fb.textContent = t("fd_tryAnother");
+    root.querySelector(".bo")?.replaceWith(htmlNode(avatar("think")));
+  }
+}
+
+function scriptNext() {
+  if (S.sx < S.scriptDef.steps.length - 1) {
+    S.sx++;
+    return drawScriptStep();
+  }
+  S.sx = 0;
+  S.cur = null;
+  nextStage();
 }
 
 /* ------------------------------------------------------------------ Unit check */
@@ -483,6 +618,7 @@ function showTask() {
   const coach = root.querySelector("#lp-coach");
   coach.innerHTML = `<div class="lp-count" aria-hidden="true">${T.p.tasks.map((_, k) => `<i class="${k < T.k ? "done" : k === T.k ? "cur" : ""}"></i>`).join("")}</div><div class="lp-speech">${avatar("think")}<div class="lp-bubble" id="lp-bubble"><div class="lp-bubble-top"><span class="lp-kicker">${esc(t("yourTurn"))}</span><span class="lp-step">${T.k + 1}/${T.p.tasks.length}</span></div><h2>${esc(task.title)}</h2><p>${esc(t("tryHint"))}</p>${task.math ? `<div class="lp-math" dir="ltr">${esc(task.math)}</div>` : ""}</div></div><div class="lp-feedback" id="lp-fb" role="status"></div><div class="lp-actions"><button class="lp-btn ghost" data-lp="skipTask">${esc(t("showMeInstead"))}</button></div>`;
   root.querySelector("#lp-live").textContent = task.title;
+  autoSpeak(task.title);
 }
 
 function onTryChange({ digits }) {
@@ -504,6 +640,7 @@ function onTryChange({ digits }) {
   fb.className = "lp-feedback no";
   fb.innerHTML = `<b>${esc(t("notYet"))}</b> ${esc(t("boardNow", { v: S.board.valueOf(digits), want: task.after.value }))} <button class="lp-link" data-lp="undo">${esc(t("undo"))}</button>`;
   S.board.flash("no");
+  sfx.no();
   S.board.hintMove(digits, task.to);
   const av = root.querySelector(".bo");
   if (av) av.outerHTML = avatar("oops");
@@ -515,6 +652,7 @@ function taskDone(ok) {
   const task = T.p.tasks[T.k];
   S.board.clearHints();
   S.board.flash("ok");
+  sfx.ok();
   const fb = root.querySelector("#lp-fb");
   fb.className = "lp-feedback ok";
   fb.innerHTML = `<b>${esc(t(pick(["nice", "great", "yes"])))}</b> ${esc(t("boardIs", { v: task.after.value }))}`;
@@ -533,6 +671,10 @@ function taskDone(ok) {
     }
   }, reduced() ? 300 : 1100);
   void ok;
+}
+/** Read the coach aloud when "Read to me" is on (Settings / welcome). */
+function autoSpeak(text) {
+  if (env.autoRead?.() && text) env.read(text, true);
 }
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 
@@ -613,6 +755,7 @@ function afterAnswer(ok, value) {
   const input = root.querySelector("#lp-answer");
   if (ok) {
     q.state = "right";
+    sfx.ok();
     if (!q.hinted && !q.revealed && q.tries === 1) q.streak++;
     else q.streak = 0;
     q.right++;
@@ -631,6 +774,7 @@ function afterAnswer(ok, value) {
   } else {
     q.streak = 0;
     q.wrong++;
+    sfx.no();
     S.board?.flash("no");
     input?.classList.add("bad");
     root.querySelector(".bo")?.replaceWith(htmlNode(avatar("oops")));
@@ -699,7 +843,8 @@ function stageDone() {
   const stars = q.wrong === 0 ? 3 : q.wrong <= 2 ? 2 : 1;
   const next = env.nextLesson(l);
   const due = env.dueText(l);
-  shell(`<section class="lp-stage no-board done"><div class="lp-trophy" aria-hidden="true">${confetti()}</div></section><section class="lp-coach"><div class="lp-speech">${avatar(mastered ? "cheer" : "happy")}<div class="lp-bubble"><h2>${esc(mastered ? t("lessonDone") : t("keepGoing"))}</h2><p>${esc(mastered ? t("lessonDoneBody") : t("keepGoingBody"))}</p><div class="lp-stars" aria-label="${stars} / 3">${[1, 2, 3].map((n) => `<svg class="${n <= stars ? "on" : ""}" viewBox="0 0 24 24"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9z"/></svg>`).join("")}</div><p class="lp-fine">${esc(t("scoreLine", { right: q.right, total: q.asked }))}${due ? ` · ${esc(t("reviewOn", { d: due }))}` : ""}</p></div></div><div class="lp-actions col"><button class="lp-btn primary" data-lp="gonext" data-primary>${esc(next ? t("nextLesson") : t("backToPath"))}</button><button class="lp-btn ghost" data-lp="again">${esc(t("practiceMore"))}</button><button class="lp-btn ghost" data-lp="exit">${esc(t("backToPath"))}</button></div></section>`);
+  sfx.done();
+  shell(`<section class="lp-stage no-board done"><div class="lp-trophy" aria-hidden="true">${confetti()}</div></section><section class="lp-coach"><div class="lp-speech">${avatar(mastered ? "cheer" : "happy")}<div class="lp-bubble"><h2>${esc(mastered ? t("lessonDone") : t("keepGoing"))}</h2><p>${esc(mastered ? t("lessonDoneBody") : t("keepGoingBody"))}</p><div class="lp-stars" aria-label="${stars} / 3">${[1, 2, 3].map((n) => `<svg class="${n <= stars ? "on" : ""}" viewBox="0 0 24 24"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9z"/></svg>`).join("")}</div>${mastered ? `<div class="lp-sticker"><span class="sticker on c${l.order % 6}"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21"/><path d="m24 9 4.4 9 9.9 1.4-7.2 7 1.7 9.9L24 31.6l-8.8 4.7 1.7-9.9-7.2-7 9.9-1.4z"/></svg><b>${l.order + 1}</b></span><strong>${esc(t("stickerNew"))}</strong></div>` : ""}<p class="lp-fine">${esc(t("scoreLine", { right: q.right, total: q.asked }))}${due ? ` · ${esc(t("reviewOn", { d: due }))}` : ""}</p></div></div><div class="lp-actions col"><button class="lp-btn primary" data-lp="gonext" data-primary>${esc(next ? t("nextLesson") : t("backToPath"))}</button><button class="lp-btn ghost" data-lp="again">${esc(t("practiceMore"))}</button><button class="lp-btn ghost" data-lp="exit">${esc(t("backToPath"))}</button></div></section>`);
   S.board = null;
 }
 
@@ -779,6 +924,30 @@ function onClick(e) {
       S.q = { pool: [], used: new Set(), asked: 0, streak: 0, right: S.q?.right || 0, wrong: S.q?.wrong || 0, log: [] };
       S.stage = S.plan.findIndex((x) => x.type === "practice");
       return enterStage();
+    case "choice":
+      return scriptChoice(b);
+    case "scriptNext":
+      return scriptNext();
+    case "scriptBack":
+      S.sx = Math.max(0, S.sx - 1);
+      S.cur = S.scriptDef.steps[S.sx].from || S.scriptDef.steps[S.sx].show || S.cur;
+      return drawScriptStep();
+    case "scriptReset": {
+      S.board.set(S.script.start);
+      setTotal(S.board.valueOf(S.script.start));
+      const fb = root.querySelector("#lp-fb");
+      fb.className = "lp-feedback";
+      fb.textContent = "";
+      if (S.script.st.hintMove) S.board.hintMove(S.script.start, S.script.st.target);
+      return;
+    }
+    case "scriptShow": {
+      const st = S.script.st;
+      const to = st.target || st.to;
+      S.board.set(to);
+      setTotal(S.board.valueOf(to));
+      return scriptSuccess(to);
+    }
     case "checkNext":
       S.check.index++;
       return stageCheck();

@@ -762,3 +762,47 @@ html[data-theme="dark"] .lp-btn.primary {
 body .lp > main.lp-main {
   padding-bottom: calc(14px + env(safe-area-inset-bottom));
 }
+
+/* ---------- tap-to-answer choices (no typing for young learners) ---------- */
+.lp-choices {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  flex: none;
+}
+.lp-choice {
+  flex: 1;
+  min-width: 84px;
+  min-height: 72px;
+  border-radius: 20px;
+  border: 3px solid var(--line);
+  border-bottom-width: 6px;
+  background: var(--card);
+  color: var(--ink);
+  font-size: 2rem;
+  font-weight: 900;
+}
+.lp-choice:hover:not(:disabled) {
+  border-color: var(--blue);
+}
+.lp-choice.right {
+  background: var(--good-bg);
+  border-color: #12b886;
+  color: var(--good);
+  opacity: 1;
+}
+.lp-choice.wrong {
+  background: var(--bad-bg);
+  border-color: transparent;
+  color: var(--bad);
+  opacity: 0.55;
+  animation: lpWob 0.35s;
+}
+.lp-trophy {
+  width: 100%;
+  display: grid;
+  place-items: center;
+}
+.lp-stage.done .lp-trophy svg {
+  width: min(380px, 80%);
+}

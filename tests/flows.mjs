@@ -81,6 +81,29 @@ for (const lang of ['bn', 'es', 'hi', 'ar', 'zh']) {
   await browser.close();
 }
 
+/* ---- Child-first lesson: real taps, no shortcuts ---- */
+{
+  const { browser, page, errors } = await launch({ reduced: true });
+  await page.evaluate(() => window.__openLesson('normal-beads'));
+  const bead = (idx, kind = 'low') => page.click(`#lp .sb-bead[data-kind=${kind}][data-idx="${idx}"]`);
+  const next = async () => { await page.click('[data-lp=scriptNext]'); await page.waitForTimeout(40); };
+  await next();
+  await bead(0); await next();
+  await next();
+  await bead(2);
+  check(!!(await page.$('[data-lp=scriptNext]')), 'child lesson: reaching 3 beads succeeds');
+  await next();
+  await page.click('.lp-choice[data-v="2"]');
+  check(!!(await page.$('.lp-choice.wrong')) && !(await page.$('[data-lp=scriptNext]')), 'child lesson: wrong choice is gentle and stays on the question');
+  await page.click('.lp-choice[data-v="3"]'); await next();
+  await bead(0); await next();
+  await bead(3); await next();
+  await next();
+  check((await stage(page)) === 'Practice', 'child lesson: continues into practice (' + (await stage(page)) + ')');
+  check(errors.length === 0, 'child lesson: no console errors ' + errors.join('|'));
+  await browser.close();
+}
+
 /* ---- Keyboard only ---- */
 {
   const { browser, page, errors } = await launch({ reduced: true });

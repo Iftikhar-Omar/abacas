@@ -263,3 +263,80 @@
 .discovery-model .model-caption {
   display: none;
 }
+
+/* ----- stickers, streak, winding path ----- */
+.sticker {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  filter: grayscale(1) opacity(0.35);
+}
+.sticker.on {
+  filter: none;
+}
+.sticker svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.sticker circle {
+  fill: var(--st, #3458db);
+}
+.sticker path {
+  fill: rgba(255, 255, 255, 0.35);
+}
+.sticker b {
+  position: relative;
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+.sticker.c0 { --st: #3458db; }
+.sticker.c1 { --st: #e8920f; }
+.sticker.c2 { --st: #12b886; }
+.sticker.c3 { --st: #9762d1; }
+.sticker.c4 { --st: #e0566b; }
+.sticker.c5 { --st: #0f9bb5; }
+.sticker-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+.streak {
+  color: #d9730d;
+}
+.lp-sticker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+}
+.lp-sticker .sticker {
+  animation: lpPop 0.7s;
+}
+.normal-lesson-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.normal-lesson-list .normal-lesson:nth-child(4n + 2) {
+  margin-left: 8%;
+}
+.normal-lesson-list .normal-lesson:nth-child(4n + 3) {
+  margin-left: 16%;
+}
+.normal-lesson-list .normal-lesson:nth-child(4n + 4) {
+  margin-left: 8%;
+}
+.normal-lesson-list .normal-lesson.recommended {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 35%, transparent);
+}
+@media (max-width: 720px) {
+  .normal-lesson-list .normal-lesson {
+    margin-left: 0 !important;
+  }
+}

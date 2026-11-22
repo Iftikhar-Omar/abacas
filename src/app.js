@@ -13,6 +13,7 @@ import { captureFocus, captureFormDrafts, focusWorkspace, restoreFocus, restoreF
 import { createAssessment, handCompatible, scoreAssessment, unitReadiness } from './assessment.js';
 import { closePlayer, configurePlayer, openCheck, openExplainer, openLesson as playLesson, openSolution } from './player.js';
 import { FingerBoard } from './fingers.js';
+import { setSfxEnabled } from './sfx.js';
 import { explainerById, explainerIds } from './explainers.js';
 import { Soroban, layoutFor } from './soroban.js';
 import { P } from './player-i18n.js';
@@ -99,8 +100,8 @@ var words = {
   normal: ["Starter path", "\u09B8\u09BE\u09A7\u09BE\u09B0\u09A3 \u09AA\u09A5"],
   mastery: ["Full course", "\u09A6\u0995\u09CD\u09B7\u09A4\u09BE\u09B0 \u09AA\u09A5"],
   normalNote: [
-    "15 short lessons. From your first bead to mental maths.",
-    "\u09AA\u09C1\u0981\u09A4\u09BF \u0997\u09CB\u09A8\u09BE \u09A5\u09C7\u0995\u09C7 \u09AE\u09A8\u09C7 \u09AE\u09A8\u09C7 \u0985\u0999\u09CD\u0995\u2014\u09E7\u09EB\u099F\u09BF \u09A7\u09BE\u09AA\u09C7\u0964"
+    "16 short lessons. From your first bead to mental maths.",
+    "\u09AA\u09C1\u0981\u09A4\u09BF \u0997\u09CB\u09A8\u09BE \u09A5\u09C7\u0995\u09C7 \u09AE\u09A8\u09C7 \u09AE\u09A8\u09C7 \u0985\u0999\u09CD\u0995\u2014\u09E7\u09EC\u099F\u09BF \u09A7\u09BE\u09AA\u09C7\u0964"
   ],
   masteryNote: [
     "All 78 lessons, with deeper practice in every skill.",
@@ -238,6 +239,7 @@ function render() {
   supportModel?.dispose();
   supportModel = null;
   applyPrefs(prefs);
+  setSfxEnabled(prefs.sfx);
   shell();
   const focusedGym = state.view === "gym" && ["playing", "answer", "feedback"].includes(state.gym?.status);
   document.body.classList.toggle("active-workspace", focusedGym);
@@ -299,7 +301,7 @@ function renderLearn() {
   const completed = list.filter(
     (l) => ["learned", "retained"].includes(progressStatus(l))
   ).length;
-  $("#main").innerHTML = `<div class="page-heading"><div><p class="eyebrow">${S("studio")}</p><h1>${T("pathway")}</h1></div><span class="quiet-label">${completed} / ${list.length} ${T("learned")}</span></div><div class="journey-picker" aria-label="${W("learning")}">${["normal", "mastery"].map((j) => `<button data-action="journey" data-journey="${j}" aria-pressed="${state.journey === j}" class="${state.journey === j ? "selected" : ""}"><b>${W(j)}</b><span>${W(j + "Note")}</span></button>`).join("")}</div><details class="track-options" ${state.journey === "normal" ? "hidden" : ""}><summary>${W("sources")}</summary><div class="track-picker" aria-label="${S("tracks")}">${[
+  $("#main").innerHTML = `<div class="page-heading"><div><p class="eyebrow">${S("studio")}</p><h1>${T("pathway")}</h1></div><span class="quiet-label">${streakDays() ? `<b class="streak">${P("streakDays", lang, { n: streakDays() })}</b> \xB7 ` : ""}${completed} / ${list.length} ${T("learned")}</span></div><div class="journey-picker" aria-label="${W("learning")}">${["normal", "mastery"].map((j) => `<button data-action="journey" data-journey="${j}" aria-pressed="${state.journey === j}" class="${state.journey === j ? "selected" : ""}"><b>${W(j)}</b><span>${W(j + "Note")}</span></button>`).join("")}</div><details class="track-options" ${state.journey === "normal" ? "hidden" : ""}><summary>${W("sources")}</summary><div class="track-picker" aria-label="${S("tracks")}">${[
     ["numbers", "numberTrack", "01"],
     ["abacus", "abacusTrack", "02"],
     ["fingers", "fingerTrack", "03"],
@@ -308,7 +310,7 @@ function renderLearn() {
     ([k, t, n]) => `<button data-action="track" data-track="${k}" aria-pressed="${state.track === k}" class="${state.track === k ? "selected" : ""}"><small>${n}</small><span>${S(t)}</span></button>`
   ).join(
     ""
-  )}</div></details><section class="discovery-card"><div class="discovery-copy"><span class="pill">${r === list[0] && !completed ? P("startHere", lang) : T(progressStatus(r))} \xB7 ${r.minutes} ${T("minutes")}</span><h2>${esc(L(r))}</h2><p>${esc(lessonIdea(r))}</p>${btn(`${T("start")} ${icon("learn")}`, "openLesson", "primary", `data-id="${r.id}"`)}</div><div class="discovery-model"><div class="model-caption"><span>${T(state.track === "fingers" ? "hands" : "abacus")}</span><b dir="ltr">${r.example}</b></div><div id="hero-model" class="model"></div><p>${S("guideTip")}</p></div></section><div class="ideas-shelf"><div class="path-heading"><h2>${P("helpfulIdeas", lang)}</h2><span>${P("helpfulIdeasNote", lang)}</span></div><div class="idea-row">${explainerIds.map((id) => { const e = explainerById(id, lang); return `<button class="idea-card" data-action="explainer" data-id="${id}"><span class="idea-art idea-${id}" aria-hidden="true">${ideaArt(id)}</span><b>${esc(e.title)}</b><small>${esc(e.blurb)}</small></button>`; }).join("")}</div></div><div class="path-heading"><h2>${T("allLessons")}</h2></div><div class="curriculum">${state.journey === "normal" ? `<div class="normal-lesson-list">${list.map((l, i) => `<button data-action="openLesson" data-id="${l.id}" class="normal-lesson ${l.id === r.id ? "recommended" : ""}"><span class="lesson-number">${["learned", "retained"].includes(progressStatus(l)) ? icon("check") : String(i + 1).padStart(2, "0")}</span><span><b>${esc(L(l))}</b><small>${l.parts.length} ${W("ideas")} \xB7 ${l.minutes} ${T("minutes")}</small></span><span class="lesson-status">${T(progressStatus(l))}</span></button>`).join("")}</div>` : units.map((u, i) => {
+  )}</div></details><section class="discovery-card"><div class="discovery-copy"><span class="pill">${r === list[0] && !completed ? P("startHere", lang) : T(progressStatus(r))} \xB7 ${r.minutes} ${T("minutes")}</span><h2>${esc(L(r))}</h2><p>${esc(lessonIdea(r))}</p>${btn(`${T("start")} ${icon("learn")}`, "openLesson", "primary", `data-id="${r.id}"`)}</div><div class="discovery-model"><div class="model-caption"><span>${T(state.track === "fingers" ? "hands" : "abacus")}</span><b dir="ltr">${r.example}</b></div><div id="hero-model" class="model"></div><p>${S("guideTip")}</p></div></section><div class="ideas-shelf"><div class="path-heading"><h2>${P("helpfulIdeas", lang)}</h2><span>${P("helpfulIdeasNote", lang)}</span></div><div class="idea-row">${explainerIds.map((id) => { const e = explainerById(id, lang); return `<button class="idea-card" data-action="explainer" data-id="${id}"><span class="idea-art idea-${id}" aria-hidden="true">${ideaArt(id)}</span><b>${esc(e.title)}</b><small>${esc(e.blurb)}</small></button>`; }).join("")}</div></div><div class="path-heading"><h2>${T("allLessons")}</h2></div><div class="curriculum">${state.journey === "normal" ? `<div class="normal-lesson-list">${list.map((l, i) => `<button data-action="openLesson" data-id="${l.id}" class="normal-lesson ${l.id === r.id ? "recommended" : ""}"><span class="lesson-number">${["learned", "retained"].includes(progressStatus(l)) ? icon("check") : String(i + 1).padStart(2, "0")}</span><span><b>${esc(L(l))}</b><small>${l.minutes} ${T("minutes")}</small></span><span class="lesson-status">${T(progressStatus(l))}</span></button>`).join("")}</div>` : units.map((u, i) => {
     const ll = list.filter((l) => l.unit === i);
     if (!ll.length) return "";
     const done = ll.filter(
@@ -644,6 +646,18 @@ function assessmentProgress() {
   );
   return rows4.length ? `<section class="panel"><h2>${T("assessment")}</h2><p class="fine">${S("checkNote")}</p><div class="table-scroll" tabindex="0" role="region" aria-label="${T("progress")}"><table><thead><tr><th>${T("learn")}</th><th>${T("mode")}</th><th>${T("accuracy")}</th><th>${T("time")}</th><th>${T("result")}</th></tr></thead><tbody>${rows4.join("")}</tbody></table></div></section>` : "";
 }
+const stickerSvg = (n, on, i) => `<span class="sticker c${i % 6} ${on ? "on" : ""}"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21"/><path d="m24 9 4.4 9 9.9 1.4-7.2 7 1.7 9.9L24 31.6l-8.8 4.7 1.7-9.9-7.2-7 9.9-1.4z"/></svg><b>${n}</b></span>`;
+function streakDays() {
+  const days = new Set(state.progress.attempts.map((a) => new Date(a.at).toLocaleDateString("en-CA")));
+  let n = 0;
+  const d = new Date();
+  if (!days.has(d.toLocaleDateString("en-CA"))) d.setDate(d.getDate() - 1);
+  while (days.has(d.toLocaleDateString("en-CA"))) {
+    n++;
+    d.setDate(d.getDate() - 1);
+  }
+  return n;
+}
 function renderProgress() {
   const p = state.progress, a = p.attempts, scored = a.filter((x) => x.mode !== "checkpoint"), correct = scored.filter((x) => x.correct).length, done = Object.values(p.lessons).filter(
     (x) => x.status === "learned" || x.status === "retained"
@@ -665,7 +679,7 @@ function renderProgress() {
     ([n, t]) => `<div class="stat"><strong>${n}</strong><span>${t}</span></div>`
   ).join(
     ""
-  )}</div>${assessmentProgress()}<section class="panel"><h2>${T("reviewDue")} <span class="count">${due.length}</span></h2>${due.length ? `<div class="review-grid">${due.map((l) => `<button data-action="openLesson" data-id="${l.id}" class="review-item"><span>${esc(L(l))}</span>${icon("learn")}</button>`).join("")}</div>` : `<p>${T(a.length ? "noRush" : "empty")}</p>`}</section><section class="panel"><h2>${T("attempts")}</h2>${a.length ? `<div class="table-scroll" tabindex="0" role="region" aria-label="${T("progress")}"><table><thead><tr><th>${T("equation")}</th><th>${T("answer")}</th><th>${T("result")}</th><th>${T("time")}</th></tr></thead><tbody>${a.slice(-20).reverse().map(
+  )}</div><section class="panel stickers"><h2>${P("stickersTitle", lang)}</h2><p class="fine">${P("stickersNote", lang)}</p><div class="sticker-grid">${normalLessons.map((l, i) => `<span title="${esc(L(l))}">${stickerSvg(i + 1, ["learned", "retained"].includes(progressStatus(l)), i)}</span>`).join("")}</div></section>${assessmentProgress()}<section class="panel"><h2>${T("reviewDue")} <span class="count">${due.length}</span></h2>${due.length ? `<div class="review-grid">${due.map((l) => `<button data-action="openLesson" data-id="${l.id}" class="review-item"><span>${esc(L(l))}</span>${icon("learn")}</button>`).join("")}</div>` : `<p>${T(a.length ? "noRush" : "empty")}</p>`}</section><section class="panel"><h2>${T("attempts")}</h2>${a.length ? `<div class="table-scroll" tabindex="0" role="region" aria-label="${T("progress")}"><table><thead><tr><th>${T("equation")}</th><th>${T("answer")}</th><th>${T("result")}</th><th>${T("time")}</th></tr></thead><tbody>${a.slice(-20).reverse().map(
     (x) => `<tr><td dir="ltr"><button class="attempt-link" data-action="reviewAttempt" data-id="${esc(x.id)}">${esc(x.expression)}</button><small class="attempt-mode">${x.mode === "checkpoint" ? S("substep") : x.config?.source ? T(x.config.source === "hands" ? "hands" : x.config.source === "mental" ? "mental" : "abacus") : T("gym")}</small></td><td dir="ltr">${esc(x.answer)}</td><td><span class="status ${x.correct ? "good" : "warm"}">${T(x.correct ? "correct" : "practicing")}</span></td><td>${(x.ms / 1e3).toFixed(1)}s</td></tr>`
   ).join("")}</tbody></table></div>` : `<p>${T("empty")}</p>`}</section><p class="fine">${C("expert")}</p>`;
 }
@@ -830,14 +844,14 @@ function confirmImport() {
   focusWorkspace();
   toast(S("imported"));
 }
-function read(text) {
+function read(text, quiet = false) {
   if (!globalThis.speechSynthesis) {
-    toast(S("voiceUnavailable"));
+    if (!quiet) toast(S("voiceUnavailable"));
     return;
   }
   const voice = speechSynthesis.getVoices().find((v) => v.lang.toLowerCase().startsWith(lang));
   if (!voice) {
-    toast(S("voiceUnavailable"));
+    if (!quiet) toast(S("voiceUnavailable"));
     return;
   }
   speechSynthesis.cancel();
@@ -900,7 +914,7 @@ function languageSelect() {
 function showSetup() {
   dialog(
     P("welcomeTitle", lang),
-    `<p class="welcome-line">${P("welcomeLine", lang)}</p>${languageSelect()}<p class="fine">${S("setupNote")}</p>`,
+    `<p class="welcome-line">${P("welcomeLine", lang)}</p>${languageSelect()}<label class="toggle-label"><input data-pref="autoRead" type="checkbox" ${prefs.autoRead ? "checked" : ""}>${P("readToMe", lang)}</label><p class="fine">${S("setupNote")}</p>`,
     btn(P("startLearning", lang), "finishSetup", "primary")
   );
 }
@@ -913,7 +927,7 @@ function showExamples() {
 function showSettings() {
   dialog(
     S("settings"),
-    `<div class="preference-grid">${preferenceSelect("theme", "theme", [["system", "system"], ["light", "light"], ["dark", "dark"]])}${preferenceSelect("surface", "palette", ["classic", "wood", "cyber", "orchid"].map((k) => [k, k]))}${preferenceSelect("density", "layout", [["auto", "auto"], ["compact", "compact"], ["chunky", "chunky"]])}</div><div class="row">${btn(P("fingerTitle", lang), "fingerGuide", "text-button")}</div>`,
+    `<div class="preference-grid">${preferenceSelect("theme", "theme", [["system", "system"], ["light", "light"], ["dark", "dark"]])}${preferenceSelect("surface", "palette", ["classic", "wood", "cyber", "orchid"].map((k) => [k, k]))}${preferenceSelect("density", "layout", [["auto", "auto"], ["compact", "compact"], ["chunky", "chunky"]])}</div><div class="preference-grid"><label class="toggle-label"><input data-pref="autoRead" type="checkbox" ${prefs.autoRead ? "checked" : ""}>${P("readToMe", lang)}</label><label class="toggle-label"><input data-pref="sfx" type="checkbox" ${prefs.sfx ? "checked" : ""}>${P("soundFx", lang)}</label></div><div class="row">${btn(P("fingerTitle", lang), "fingerGuide", "text-button")}</div>`,
     `${btn(S("restoreDefaults"), "defaultPrefs", "secondary")}${btn(S("done"), "closeDialog", "primary")}`
   );
 }
@@ -1311,6 +1325,7 @@ configurePlayer({
     return due ? new Intl.DateTimeFormat(lang, { month: "short", day: "numeric" }).format(new Date(due)) : "";
   },
   read,
+  autoRead: () => prefs.autoRead,
   onClose: () => {
     state.feedback = null;
     render();

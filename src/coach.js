@@ -118,11 +118,14 @@ export function buildScenes(trace, lang, layout) {
       // multi-digit numbers are split by place: 56 -> 50 + 6
       const digitsOfB = /^\d{2,}$/.test(String(p.b)) ? String(p.b).split("").map((d, k, a) => (d === "0" ? null : d + "0".repeat(a.length - 1 - k))).filter(Boolean) : [];
       const split = digitsOfB.length >= 2 && (word === "add" || word === "take") ? `${P("sc_opSplit", lang, { b: p.b, parts: digitsOfB.join(" + ") })} ` : "";
+      // a tiny real-world picture first: "8 sweets, 4 more arrive" (small whole numbers only)
+      const small = /^\d{1,2}$/.test(String(p.a)) && /^\d{1,2}$/.test(String(p.b));
+      const story = small && (word === "add" || word === "take") ? `${P(word === "add" ? "story_add" : "story_take", lang, { a: p.a, b: p.b })} ` : "";
       scenes.push(
         mk(i, i, {
           type: "operation",
           title: P(`sc_op_${word}`, lang, { b: pretty(p.b) }),
-          body: split + P(hint, lang),
+          body: story + split + P(hint, lang),
           math: `${pretty(p.a)} ${pretty(p.op)} ${pretty(p.b)}`,
           friend: hint === "sc_opBig" ? "big" : hint === "sc_opBorrow" ? "borrow" : hint === "sc_opLittle" ? "little" : null,
         })

@@ -15,6 +15,16 @@ npm run build    # dist/abacus-academy.html — ONE self-contained file, opens b
 npm test         # lint + build + every lesson + focused flows (needs `npm run dev` running)
 ```
 
+## Designed for first-time learners
+
+* **Touch first.** The very first screen lets a child tap a bead within seconds; no reading needed to start.
+* **Bo the bead** speaks in tiny sentences (one idea each), with optional read-aloud and soft sound effects.
+* **Never "wrong" while exploring.** Early steps are errorless; hints escalate from a glow to an arrow to "Show me".
+* **Tap, don't type.** Early questions are big tap-the-answer buttons (e.g. 35 vs 53 for tens and ones).
+* **Concrete → picture → symbol.** Beads are "awake" when they touch the middle bar; the big bead is "a whole hand = 5";
+  add/take steps start with a sweets story; the numbers come last.
+* **Motivation without pressure.** Stars, stickers for each lesson, a gentle day streak, and a winding lesson path.
+
 ## What a lesson feels like
 
 Every lesson is a short, full-screen flow with one obvious button at a time:

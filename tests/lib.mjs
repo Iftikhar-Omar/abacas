@@ -71,7 +71,13 @@ export async function playLesson(page, { maxSteps = 400, timeoutMs = 45000 } = {
       const nx = await page.$('[data-primary]'); if (nx) { await nx.click(); continue; }
       await page.waitForTimeout(200); continue;
     }
-    const nx = (await page.$('[data-lp=next]')) || (await page.$('[data-primary]'));
+    if ((await page.$('.lp-choices')) && !(await page.$('[data-lp=scriptNext]'))) {
+      for (const c of await page.$$('.lp-choice')) { if (await page.$('[data-lp=scriptNext]')) break; await c.click().catch(() => {}); }
+      continue;
+    }
+    const show = await page.$('[data-lp=scriptShow]');
+    if (show) { await show.click(); continue; }
+    const nx = (await page.$('[data-lp=next]')) || (await page.$('[data-lp=scriptNext]')) || (await page.$('[data-primary]'));
     if (!nx) { await page.waitForTimeout(150); continue; }
     await nx.click();
     await page.waitForTimeout(25);
