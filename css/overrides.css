@@ -1,3 +1,7 @@
+/* File: overrides.css
+   Directory: css/
+   Style overrides for navigation, focused practice and overflow recovery. */
+
     /* 4.2: consistent navigation, focused practice, and readable overflow recovery. */
 .skip-link {
   position: fixed;

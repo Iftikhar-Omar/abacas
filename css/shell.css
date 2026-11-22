@@ -157,3 +157,100 @@
     display: none;
   }
 }
+/* ----- solve page ----- */
+.solve-card {
+  max-width: 760px;
+  display: grid;
+  gap: 14px;
+}
+.solve-lead {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  margin: 0;
+  color: var(--muted);
+}
+.solve-card .solver-input-row {
+  display: flex;
+  gap: 10px;
+}
+.solve-card .solver-input-row input {
+  flex: 1;
+  min-width: 0;
+  height: 60px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  padding: 0 18px;
+  border-radius: 18px;
+  border: 2px solid var(--line);
+  background: var(--surface, #fff);
+  color: var(--ink);
+}
+.solve-card .solver-input-row input:focus {
+  outline: none;
+  border-color: var(--blue);
+}
+.solve-card .solver-input-row .button {
+  height: 60px;
+  padding: 0 24px;
+}
+.op-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.op-keys .button {
+  min-width: 48px;
+  height: 46px;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+.solve-sub {
+  font-size: 1rem;
+  margin: 10px 0 0;
+  color: var(--muted);
+}
+.example-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.finger-demo-board {
+  height: 230px;
+  display: flex;
+  justify-content: center;
+}
+.finger-demo-board .soroban {
+  height: 100%;
+  width: auto;
+}
+.finger-total {
+  text-align: center;
+}
+.solve-card .solver-form {
+  display: grid;
+  gap: 4px;
+  padding: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+.gym-layout {
+  max-width: 760px;
+  margin-inline: auto;
+}
+@media (max-width: 720px) {
+  .discovery-card {
+    grid-template-columns: 1fr;
+  }
+  .discovery-model {
+    order: -1;
+  }
+  .discovery-copy .button {
+    width: 100%;
+    justify-content: center;
+  }
+  .discovery-model #hero-model {
+    height: 200px;
+  }
+}

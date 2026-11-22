@@ -1,3 +1,7 @@
+// File: journey-i18n.js
+// Directory: src/
+// Titles and copy for the starter path.
+
 export var journeyCopy = {
   es: {
     normal: "Ruta normal",

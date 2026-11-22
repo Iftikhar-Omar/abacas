@@ -1,3 +1,7 @@
+/* File: base.css
+   Directory: css/
+   Base styles: root colour and typography variables and core element rules. */
+
     :root {
   --ink: #18253d;
   --muted: #62708a;

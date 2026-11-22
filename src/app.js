@@ -1,23 +1,26 @@
+// File: app.js
+// Directory: src/
+// Main application: views (learn, solve, practice, progress, account), dialogs and event handling.
+
 import { applyPrefs, readPrefs, sanitizePrefs, st, writePrefs } from './studio.js';
-import { extraConcepts, languages, skillName, stepText, tr } from './i18n.js';
-import { allLessons, concept, freshProgress, lessonFor, lessons, normalLessons, recordAttempt, units } from './curriculum.js';
+import { extraConcepts, languages, skillName, tr } from './i18n.js';
+import { allLessons, concept, freshProgress, lessons, normalLessons, recordAttempt, units } from './curriculum.js';
 import { config } from './config.js';
-import { answerEquals, evaluate, normalize, parse, solve } from './engine.js';
+import { answerEquals, evaluate, solve } from './engine.js';
 import { Playback, makeChallenge, presets, suggestNext, validateConfig } from './gym.js';
 import { journeyCopy } from './journey-i18n.js';
 import { captureFocus, captureFormDrafts, focusWorkspace, restoreFocus, restoreFormDrafts } from './ui.js';
 import { createAssessment, handCompatible, scoreAssessment, unitReadiness } from './assessment.js';
-import { BeadModel } from './model.js';
-import { closePlayer, configurePlayer, openExplainer, openLesson as playLesson, playerOpen } from './player.js';
+import { closePlayer, configurePlayer, openCheck, openExplainer, openLesson as playLesson, openSolution } from './player.js';
+import { FingerBoard } from './fingers.js';
 import { explainerById, explainerIds } from './explainers.js';
 import { Soroban, layoutFor } from './soroban.js';
 import { P } from './player-i18n.js';
-import { actionSteps, freshQuestions, misconception } from './practice.js';
+import { freshQuestions } from './practice.js';
 
 var prefs = readPrefs();
 applyPrefs(prefs);
 var $ = (s) => document.querySelector(s);
-var $$ = (s) => [...document.querySelectorAll(s)];
 var esc = (s) => String(s ?? "").replace(
   /[&<>"']/g,
   (c) => ({
@@ -77,13 +80,10 @@ Object.assign(state, {
   firstError: null,
   assessment: null
 });
-var model = null;
 var heroModel = null;
 var supportModel = null;
 var toastTimer = null;
 var clock = null;
-var autoTimer = null;
-var autoPlaying = false;
 var dialogDemo = null;
 var dialogFocus = null;
 var S = (k) => st(k, lang);
@@ -144,7 +144,6 @@ var W = (k) => journeyCopy[lang]?.[k] || words[k]?.[lang === "bn" ? 1 : 0] || S(
 function setJourney(journey) {
   closePlayer(true);
   if (!["normal", "mastery"].includes(journey)) return;
-  stopAuto();
   closeDialog();
   cancelGym();
   prefs.journey = state.journey = journey;
@@ -156,46 +155,6 @@ function setJourney(journey) {
   render();
   focusWorkspace();
   window.scrollTo(0, 0);
-}
-function watchIdea(index) {
-  const l = state.lesson;
-  if (!l?.parts || !l.parts[index]) return;
-  stopAuto();
-  closeDialog();
-  state.watchPart = index;
-  state.modelFocus = state.focus = false;
-  state.phase = "watch";
-  state.lessonTrace = solve(l.parts[index].example);
-  state.lessonIndex = 0;
-  state.modelMode = l.parts[index].id === "hands" ? "hands" : "abacus";
-  state.locked = true;
-  state.explore = null;
-  state.expanded = false;
-  render();
-  focusWorkspace();
-}
-function workspaceHeading() {
-  const l = state.view === "learn" ? state.lesson : null;
-  return `<div class="workspace-context">${btn(`\u2630 <span>${W("menu")}</span>`, "workspaceMenu", "workspace-menu", `aria-label="${W("menu")}"`)}<div class="workspace-title"><h1>${l ? esc(L(l)) : T(state.view)}</h1><small>${l ? `${W(l.journey || "mastery")} \xB7 ${l.order + 1} / ${l.journey ? normalLessons.length : lessons.length}` : W("oneMove")}</small></div>${l ? btn(icon("list"), "lessonPlan", "icon-button", `aria-label="${W("lessonPlan")}" title="${W("lessonPlan")}"`) : ""}</div>`;
-}
-function phaseHeader() {
-  if (state.view !== "learn" || !state.lesson) return "";
-  return `<div class="workspace-phases" aria-label="${W("lessonPlan")}">${["watch", "together", "alone"].map((p, i) => `<span class="${state.phase === p ? "current" : ""}" aria-current="${state.phase === p ? "step" : "false"}"><b>${i + 1}</b>${T(p)}</span>`).join("")}</div>`;
-}
-function showWorkspaceMenu() {
-  dialog(
-    W("menu"),
-    `<div class="workspace-menu-grid">${["learn", "solver", "gym", "progress", "account"].map((k) => btn(`${icon(k)} ${T(k)}`, "nav", "secondary", `data-view="${k}"`)).join("")}${btn(S("settings"), "settings", "secondary")}${btn(S("guide"), "guide", "secondary")}</div>${languageSelect()}`
-  );
-}
-function showLessonPlan() {
-  const l = state.lesson;
-  if (!l) return;
-  dialog(
-    L(l),
-    `<p>${W("chooseIdea")}</p><div class="lesson-plan-list">${(l.parts || [l]).map((p, i) => btn(`${i + 1}. ${esc(L(p))} <span dir="ltr">${esc(p.example)}</span>`, "watchIdea", "secondary", `data-index="${i}"`)).join("")}</div><p>${S("guideTip")}</p>`,
-    btn(T("allLessons"), "allLessons", "secondary")
-  );
 }
 var icon = (name) => {
   const paths = {
@@ -247,7 +206,6 @@ function nav(view) {
   const previousView = state.view;
   state.lessonReview = null;
   closeDialog();
-  stopAuto();
   state.focus = false;
   state.modelFocus = false;
   if (state.view === "gym" && view !== "gym") cancelGym();
@@ -273,7 +231,7 @@ function shell() {
   $("#app").innerHTML = `<a href="#main" class="skip-link">${S("skipToContent")}</a><aside class="sidebar"><a href="#learn" class="brand" aria-label="Abacus Academy"><span class="brand-mark"><i></i><i></i><i></i></span><span>abacus<span class="brand-sub">ACADEMY</span></span></a><nav aria-label="${T("pathway")}">${["learn", "solver", "gym", "progress", "account"].map((k) => `<button data-action="nav" data-view="${k}" aria-label="${T(k)}" title="${T(k)}" class="nav-item ${state.view === k ? "selected" : ""}" aria-current="${state.view === k ? "page" : "false"}">${icon(k)}<span>${S("nav" + k)}</span></button>`).join("")}</nav><div class="sidebar-bottom"><div class="mini-progress"><span>${T("learned")}</span><b>${learned} / ${path.length}</b><progress value="${learned}" max="${path.length}"></progress></div><small>Abacus Academy \xB7 v5.0</small></div></aside><div class="main-shell"><header class="topbar"><h2 class="top-title">${T(state.view)}</h2><div class="top-actions"><span class="session-badge">${state.user ? esc(state.user.username) : T("guest")}</span><label class="language"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg><select id="language" aria-label="${S("chooseLanguage")}">${languages.map(([code, name]) => `<option value="${code}" ${code === lang ? "selected" : ""}>${name}</option>`).join("")}</select></label>${btn(icon("info"), "guide", "icon-button", `aria-label="${S("guide")}" title="${S("guide")}"`)}${btn(icon("gear"), "settings", "icon-button", `aria-label="${S("settings")}" title="${S("settings")}"`)}</div></header><main id="main" tabindex="-1"></main></div>`;
 }
 function render() {
-  const active = captureFocus(), previousKey = $("#main")?.dataset.renderKey, key = `${state.view}-${state.lesson?.id}-${state.phase}-${state.answerIndex}-${state.practiceCursor}-${state.mentalStage}-${state.assessment?.id}-${state.assessment?.index}-${state.watchPart}-${state.view === "solver" ? state.solver.source : ""}`;
+  const active = captureFocus(), previousKey = $("#main")?.dataset.renderKey, key = `${state.view}-${state.gym?.status || ""}-${state.view === "solver" ? state.solverError : ""}`;
   const drafts = previousKey === key ? captureFormDrafts($("#main")) : [];
   heroModel?.dispose();
   heroModel = null;
@@ -281,164 +239,21 @@ function render() {
   supportModel = null;
   applyPrefs(prefs);
   shell();
-  document.body.classList.toggle("focus-view", state.focus || state.modelFocus);
-  document.body.classList.toggle("model-focus", state.modelFocus);
-  document.body.classList.toggle(
-    "active-workspace",
-    state.view === "assessment" || state.view === "gym" || state.view === "solver" || state.view === "learn" && !!state.lesson
-  );
-  document.body.classList.toggle("gym-workspace", state.view === "gym");
-  document.body.classList.toggle(
-    "learning-workspace",
-    state.view === "learn" && !!state.lesson
-  );
-  if (state.view === "learn") state.lesson ? renderLesson() : renderLearn();
+  const focusedGym = state.view === "gym" && ["playing", "answer", "feedback"].includes(state.gym?.status);
+  document.body.classList.toggle("active-workspace", focusedGym);
+  document.body.classList.toggle("gym-workspace", focusedGym);
+  document.body.classList.remove("focus-view", "model-focus", "learning-workspace");
+  if (state.view === "learn") renderLearn();
   if (state.view === "solver") renderSolver();
   if (state.view === "gym") renderGym();
   if (state.view === "progress") renderProgress();
   if (state.view === "account") renderAccount();
-  if (state.view === "assessment") renderAssessment();
-  if (model && !document.contains(model.el)) {
-    model.dispose();
-    model = null;
-  }
   $("#main").dataset.renderKey = key;
   restoreFormDrafts(drafts);
   if (previousKey === key) restoreFocus(active);
 }
 function progressStatus(l) {
   return state.progress.lessons[l.id]?.status || "new";
-}
-function showUnitCheck(unit) {
-  state.assessmentUnit = unit;
-  const supportsHands = lessons.some(
-    (l) => l.unit === unit && handCompatible(l.example)
-  );
-  const source = state.track === "mental" ? "mental" : state.track === "fingers" && supportsHands ? "hands" : "abacus";
-  dialog(
-    T("assessment"),
-    `<h3>${esc(lang === "bn" ? units[unit][1] : units[unit][0])}</h3><p>${S("checkNote")}</p><form id="assessment-options"><label>${T("mode")}<select name="source">${[
-      "abacus",
-      "hands",
-      "mental"
-    ].filter((s) => s !== "hands" || supportsHands).map(
-      (s) => `<option value="${s}" ${s === source ? "selected" : ""}>${s === "mental" ? S("mentalTrack") : T(s === "hands" ? "hands" : "abacus")}</option>`
-    ).join(
-      ""
-    )}</select></label><label class="toggle-label"><input type="checkbox" name="timed">${S("timedCheck")}</label></form>`,
-    btn(T("start"), "startAssessment", "primary")
-  );
-}
-function beginAssessment() {
-  const form = $("#assessment-options"), fd = new FormData(form);
-  const a = createAssessment(
-    state.assessmentUnit,
-    String(fd.get("source")),
-    Date.now(),
-    fd.get("timed") === "on"
-  );
-  closeDialog();
-  stopAuto();
-  cancelGym();
-  state.lesson = null;
-  state.assessment = a;
-  state.view = "assessment";
-  state.modelMode = a.source === "hands" ? "hands" : "abacus";
-  state.focus = false;
-  state.modelFocus = false;
-  state.explore = null;
-  render();
-  $("#assessment-answer")?.focus({ preventScroll: true });
-}
-function renderAssessment() {
-  clearInterval(clock);
-  clock = null;
-  const a = state.assessment;
-  if (!a) {
-    nav("learn");
-    return;
-  }
-  if (a.index >= a.items.length) {
-    const result = scoreAssessment(a.responses, a);
-    $("#main").innerHTML = `<section class="completion">${workspaceHeading()}<span class="pill">${T("assessment")}</span><h2>${result.passed ? S("accuracyReady") : S("notYet")}</h2><div class="stats-grid"><div class="stat"><strong>${Math.round(result.accuracy * 100)}%</strong><span>${T("accuracy")}</span></div><div class="stat"><strong>${(result.ms / 1e3).toFixed(1)}s</strong><span>${T("time")}</span></div></div><p>${a.timed ? result.pace ? S("paceReady") : S("notYet") : S("checkNote")}</p><div class="row">${btn(S("checkAgain"), "unitCheck", "secondary", `data-unit="${a.unit}"`)}${btn(T("allLessons"), "nav", "primary", 'data-view="learn"')}</div></section>`;
-    return;
-  }
-  const item = a.items[a.index];
-  if (a.current !== a.index) {
-    a.current = a.index;
-    a.questionAt = Date.now();
-    a.hinted = false;
-    a.revealed = false;
-    a.checked = false;
-    state.explore = null;
-    state.lessonTrace = solve(item.expression);
-    state.lessonIndex = 0;
-  }
-  const hidden = a.source === "mental" && !a.revealed;
-  state.locked = hidden;
-  const snapshot = state.explore || { raw: "0", scale: 0, value: "0" };
-  $("#main").innerHTML = `<div class="lesson-heading"><div>${btn(`\u2039 ${T("allLessons")}`, "nav", "back-link", 'data-view="learn"')}<h1>${T("assessment")} \xB7 ${a.unit + 1}</h1></div><span class="pill">${a.index + 1} / 10</span></div><div class="solver-workspace assessment-work ${hidden ? "assessment-mental" : ""}"><div class="model-column">${modelCard(snapshot)}</div><section class="step-panel assessment-task"><span class="pill">${a.timed ? S("timedCheck") : T("untimed")}</span><div class="recall-expression" dir="ltr">${esc(item.expression.replaceAll("*", "\xD7"))}</div><form id="assessment-form" class="answer-form"><label for="assessment-answer" class="sr-only">${T("answer")}</label><input id="assessment-answer" name="answer" autocomplete="off" inputmode="text" maxlength="80" placeholder="${T("answer")}" dir="ltr" ${a.checked ? "disabled" : ""}><button class="button primary" ${a.checked ? "disabled" : ""}>${T("check")}</button></form>${a.checked ? `<div class="feedback ${a.responses.at(-1).correct ? "success" : "try"}" role="status"><strong>${T(a.responses.at(-1).correct ? "correct" : "practicing")}</strong>${a.responses.at(-1).correct ? "" : `<span dir="ltr">${esc(item.expected)}</span>`}</div>${btn(a.index === 9 ? T("finish") : S("nextShort"), "nextAssessment", "primary")}` : hidden ? btn(S("revealModel"), "assessmentReveal", "text-button") : ""}<p class="fine">${a.hinted ? T("hint") : S("checkIndependent")}</p></section></div>`;
-  attachModel(snapshot);
-  model.setHidden(hidden);
-  if (hidden) {
-    $(".model-stage").inert = true;
-    $(".model-stage").setAttribute("aria-hidden", "true");
-    $("#total").textContent = "?";
-    $(".model-stage").insertAdjacentHTML(
-      "beforeend",
-      `<div class="mental-cover">${icon("learn")}<span>${S("checkIndependent")}</span></div>`
-    );
-  }
-  if (a.timed) {
-    const elapsed = document.createElement("output");
-    elapsed.id = "assessment-clock";
-    elapsed.setAttribute("aria-label", T("time"));
-    $(".lesson-heading").append(elapsed);
-    const tick = () => {
-      const ms = a.responses.reduce((n, r) => n + r.ms, 0) + (a.checked ? 0 : Date.now() - a.questionAt);
-      elapsed.textContent = `${T("time")}: ${Math.floor(ms / 6e4)}:${String(Math.floor(ms / 1e3) % 60).padStart(2, "0")} / 10:00`;
-    };
-    tick();
-    clock = setInterval(tick, 1e3);
-  }
-}
-function checkAssessment(value) {
-  const a = state.assessment;
-  if (!a || a.checked || !String(value).trim()) return;
-  const item = a.items[a.index], correct = answerEquals(value, item.expected), source = a.source === "mental" ? "mental" : state.modelMode;
-  const response = {
-    correct,
-    hinted: a.hinted || source === "hands" && !handCompatible(item.expression),
-    ms: Date.now() - a.questionAt,
-    source
-  };
-  a.responses.push(response);
-  a.checked = true;
-  recordAttempt(state.progress, {
-    ...response,
-    mode: "assessment",
-    expression: item.expression,
-    answer: String(value),
-    expected: item.expected,
-    config: {
-      unit: a.unit,
-      source,
-      assessmentId: a.id,
-      itemIndex: a.index,
-      timed: a.timed,
-      assessmentLesson: item.lessonId
-    }
-  });
-  saveProgress();
-  render();
-  $('[data-action="nextAssessment"]')?.focus({ preventScroll: true });
-}
-function nextAssessmentItem() {
-  if (!state.assessment?.checked) return;
-  state.assessment.index++;
-  state.explore = null;
-  render();
-  $("#assessment-answer")?.focus({ preventScroll: true });
 }
 function eligibleLessons() {
   if (state.journey === "normal") return normalLessons;
@@ -509,7 +324,6 @@ function renderLearn() {
   heroModel = { dispose() {} };
 }
 function openLesson(id) {
-  stopAuto();
   closeDialog();
   const l = allLessons.find((l2) => l2.id === id);
   if (!l) return;
@@ -517,213 +331,65 @@ function openLesson(id) {
   state.lessonReview = null;
   playLesson(l);
 }
-function returnSolver() {
-  const saved = state.returnStack.pop();
-  if (!saved) return;
-  state.lessonReview = saved.lessonReview || null;
-  state.solver = saved.trace;
-  state.solverIndex = saved.index;
-  state.modelMode = saved.mode;
-  state.locked = true;
-  state.explore = null;
-  state.expanded = saved.expanded;
-  state.view = "solver";
-  render();
-}
-function traceView() {
-  const trace = state.view === "solver" ? state.solver : state.lessonTrace, index = state.view === "solver" ? state.solverIndex : state.lessonIndex;
-  return {
-    trace,
-    index,
-    step: trace.steps[index],
-    group: trace.groups[trace.steps[index].group]
-  };
-}
-function modelCard(snapshot, step = null) {
-  const canExplore = state.view === "solver" || state.view === "learn" && state.phase === "watch";
-  const control = (name, action, label) => btn(
-    icon(name),
-    action,
-    "icon-button",
-    `aria-label="${label}" title="${label}"`
-  );
-  return `<section class="model-card canvas-card"><div id="bead-model" class="model"></div><div class="canvas-top">${workspaceHeading()}<div class="total"><small class="sr-only">${W("result")}</small><strong id="total" dir="ltr" aria-live="polite" aria-atomic="true">${esc(snapshot.value)}</strong></div><div class="model-tools">${canExplore ? `<button aria-label="${W(state.locked ? "explore" : "restore")}" title="${W(state.locked ? "explore" : "restore")}" id="lock" class="lock-button ${state.locked ? "" : "exploring"}" data-action="lock" aria-pressed="${!state.locked}">${icon(state.locked ? "lock" : "unlock")}<span class="sr-only">${W(state.locked ? "explore" : "restore")}</span></button>` : ""}${control(state.modelFocus ? "close" : "expand", "enlargeModel", state.modelFocus ? S("done") : W("enlarge"))}${control("more", "modelTools", S("modelControls"))}</div></div><div class="canvas-bottom"><div class="segmented"><button data-action="modelMode" data-mode="abacus" aria-pressed="${state.modelMode === "abacus"}" class="${state.modelMode === "abacus" ? "active" : ""}">${T("abacus")}</button><button data-action="modelMode" data-mode="hands" aria-pressed="${state.modelMode === "hands"}" class="${state.modelMode === "hands" ? "active" : ""}">${T("hands")}</button></div><div class="view-tools">${state.locked ? control("replay", "replay", S("replay")) : control("undo", "undo", S("undo"))}${control("minus", "zoomOut", S("zoomOut"))}${control("plus", "zoomIn", S("zoomIn"))}${control("reset", "resetView", S("resetView"))}</div></div><p id="model-note" class="model-note sr-only"></p></section>`;
-}
-function lockFeedback() {
-  const b = $("#lock");
-  if (!b) return;
-  b.classList.remove("pulse");
-  void b.offsetWidth;
-  b.classList.add("pulse", "lock-attention");
-  b.setAttribute("aria-label", T("lockHint"));
-  toast(T("lockHint"));
-  clearTimeout(b._attention);
-  b._attention = setTimeout(() => b.classList.remove("lock-attention"), 2500);
-}
-function attachModel(snapshot, before = null, col = -1) {
-  const placeholder = $("#bead-model");
-  if (model) {
-    placeholder.replaceWith(model.el);
-  } else
-    model = new BeadModel(placeholder, {
-      prefs: () => prefs,
-      lang: () => lang,
-      onLocked: lockFeedback,
-      onChange: (s, action) => {
-        state.explore = s;
-        $("#total").textContent = s.value;
-        if (state.practice)
-          state.practice.actions.push({
-            ...action,
-            value: s.value,
-            at: performance.now()
-          });
-        const undo = $('[data-action="undo"]');
-        if (undo) undo.disabled = !model.history.length;
-      }
-    });
-  model.stage.querySelectorAll(".mental-cover").forEach((e) => e.remove());
-  model.stage.inert = false;
-  model.stage.removeAttribute("aria-hidden");
-  model.setHidden(false);
-  model.mode = state.modelMode;
-  model.locked = state.locked;
-  const trace = state.view === "solver" ? state.solver : state.view === "assessment" ? state.lessonTrace : state.phase === "alone" ? state.practice?.trace : state.lessonTrace;
-  const numeric = trace?.steps.map((s) => model.normalize(s.after)).filter(Boolean).map((s) => ({
-    ...s,
-    raw: String(BigInt(s.raw) < 0n ? -BigInt(s.raw) : BigInt(s.raw))
-  })).filter((s) => s.raw.length <= 18) || [];
-  model.rangeScale = Math.max(0, ...numeric.map((s) => s.scale || 0));
-  model.rangeRods = Math.max(
-    3,
-    ...numeric.map(
-      (s) => String(s.raw).length + Math.max(0, model.rangeScale - (s.scale || 0))
-    )
-  );
-  const key = `${state.view}-${state.lesson?.id || ""}-${state.phase}-${state.view === "solver" ? state.solverIndex : state.lessonIndex}-${state.practiceCursor}-${snapshot.value}-${state.modelMode}`;
-  const animate = key !== model.lastKey && !state.explore;
-  model.lastKey = key;
-  if (animate && before?.raw !== null && before) {
-    model.set(before);
-    model.el.getBoundingClientRect();
-  }
-  model.set(snapshot, animate ? before : null, col);
-  if (animate) model.scene?.focusColumn(col);
-  $("#model-note").classList.toggle(
-    "important-note",
-    model.unsupported || model.sign < 0n || !!model.scale
-  );
-  $("#model-note").textContent = model.unsupported ? S(state.modelMode === "hands" ? "handsLimit" : "exactFraction") : state.modelMode === "hands" ? S(prefs.fingerPose === "extendedCounts" ? "raiseHelp" : "bendHelp") : model.sign < 0n ? S("signedMagnitude") : model.scale ? `${S("decimalAdded")}: ${model.scale}` : state.locked ? S("snapshot") : W("moveHelp");
-  if (model.unsupported && state.modelMode === "hands")
-    model.unavailable.insertAdjacentHTML(
-      "beforeend",
-      btn(S("switchAbacus"), "switchAbacus", "text-button")
-    );
-  const u = $('[data-action="undo"]');
-  if (u) u.disabled = !model.history.length;
-}
-function contextHTML(group, step) {
-  const trace = state.view === "solver" ? state.solver : state.lessonTrace;
-  const count = step.total || group.count || 1;
-  const sub = Math.min(count, step.sub || 1);
-  const expression = trace.source.replaceAll("*", "\xD7").replaceAll("/", "\xF7");
-  return `<div class="operation-strip ${group.tone}"><div class="operation-copy"><small dir="ltr" title="${esc(expression)}">${esc(expression)}</small><strong dir="ltr">${esc(group.label)}</strong></div><span class="substep-count">${S("substep")} <b>${sub} / ${count}</b></span><progress max="${count}" value="${sub}" aria-label="${S("substep")}"></progress></div>`;
-}
-function learningIdea(skill) {
-  if (state.view === "learn" && state.lesson?.idea)
-    return lessonIdea(state.lesson);
-  if (state.modelMode !== "hands") return C(skill);
-  const ideas = {
-    five: lang === "bn" ? "\u09AC\u09C1\u09A1\u09BC\u09CB \u0986\u0999\u09C1\u09B2\u09C7\u09B0 \u09AE\u09BE\u09A8 \u09AA\u09BE\u0981\u099A\u0964 \u09AA\u09BE\u0981\u099A \u09AF\u09CB\u0997 \u0995\u09B0\u09C7 \u09AC\u09BE\u09A1\u09BC\u09A4\u09BF \u098F\u0995\u0995\u0997\u09C1\u09B2\u09CB \u09B8\u09B0\u09BE\u0987\u0964" : "The thumb is worth five. Add five, then remove the extra ones.",
-    ten: lang === "bn" ? "\u09A1\u09BE\u09A8 \u09B9\u09BE\u09A4\u09C7 \u098F\u0995\u0995, \u09AC\u09BE\u0981 \u09B9\u09BE\u09A4\u09C7 \u09A6\u09B6\u0995\u0964 \u09A6\u09B6 \u09B9\u09B2\u09C7 \u09A1\u09BE\u09A8 \u09B9\u09BE\u09A4 \u0996\u09BE\u09B2\u09BF \u0995\u09B0\u09C7 \u09AC\u09BE\u0981 \u09B9\u09BE\u09A4\u09C7 \u098F\u0995\u099F\u09BE \u09A6\u09B6 \u09A8\u09BF\u0987\u0964" : "The right hand holds ones; the left holds tens. Exchange ten ones for one ten.",
-    borrow: lang === "bn" ? "\u09AC\u09BE\u0981 \u09B9\u09BE\u09A4\u09C7\u09B0 \u098F\u0995\u099F\u09BE \u09A6\u09B6 \u09A8\u09BF\u0987\u0964 \u09A1\u09BE\u09A8 \u09B9\u09BE\u09A4\u09C7 \u09AC\u09BF\u09AF\u09BC\u09CB\u0997\u09C7\u09B0 \u09AA\u09B0 \u09AF\u09A4 \u09A5\u09BE\u0995\u09C7, \u09A4\u09A4 \u0986\u0999\u09C1\u09B2 \u09B0\u09BE\u0996\u09BF\u0964" : "Exchange one ten from the left hand, keeping the remaining ones on the right.",
-    direct: lang === "bn" ? "\u098F\u0995\u099F\u09BE \u0986\u0999\u09C1\u09B2\u09C7\u09B0 \u09AE\u09BE\u09A8 \u098F\u0995\u0964 \u09A1\u09BE\u09A8 \u09B9\u09BE\u09A4\u09C7\u09B0 \u09AC\u09C1\u09A1\u09BC\u09CB \u0986\u0999\u09C1\u09B2\u09C7\u09B0 \u09AE\u09BE\u09A8 \u09AA\u09BE\u0981\u099A\u0964" : "Each right-hand finger is one; its thumb is five.",
-    subtract: lang === "bn" ? "\u0997\u09CB\u09A8\u09BE \u0986\u0999\u09C1\u09B2 \u0986\u0997\u09C7\u09B0 \u09AD\u0999\u09CD\u0997\u09BF\u09A4\u09C7 \u09AB\u09C7\u09B0\u09BE\u09B2\u09C7 \u09A4\u09BE\u09B0 \u09AE\u09BE\u09A8 \u09AC\u09BE\u09A6 \u09AF\u09BE\u09AF\u09BC\u0964" : "Return a counted finger to its resting pose to subtract its value."
-  };
-  return ["en", "bn"].includes(lang) && ideas[skill] ? ideas[skill] : `${S("fingerTrack")} \xB7 ${S("handsLimit")} \xB7 ${C(skill)}`;
-}
-function stepDescription(step) {
-  const info = stepText(step, lang);
-  if (state.modelMode === "hands" && step.kind === "clear")
-    info.text = lang === "bn" ? prefs.fingerPose === "extendedCounts" ? "\u09B8\u09AC \u0986\u0999\u09C1\u09B2 \u09AD\u09BE\u0981\u099C \u0995\u09B0\u09C7 \u09B6\u09C2\u09A8\u09CD\u09AF \u0995\u09B0\u09BF" : "\u09B8\u09AC \u0986\u0999\u09C1\u09B2 \u0996\u09C1\u09B2\u09C7 \u09B6\u09C2\u09A8\u09CD\u09AF \u0995\u09B0\u09BF" : lang === "en" ? "Rest all fingers at zero" : S("resting");
-  if (state.modelMode === "hands" && ["upperOn", "upperOff", "lowerOn", "lowerOff"].includes(step.kind)) {
-    info.text = lang === "bn" ? `${step.kind.endsWith("On") === (prefs.fingerPose === "extendedCounts") ? "\u0996\u09C1\u09B2\u09CB" : "\u09AD\u09BE\u0981\u099C \u0995\u09B0\u09CB"} \xB7 ${step.kind.startsWith("upper") ? "\u09AC\u09C1\u09A1\u09BC\u09CB \u0986\u0999\u09C1\u09B2" : "\u0986\u0999\u09C1\u09B2"} \xB7 ${step.params.place}` : lang === "en" ? `${step.kind.endsWith("On") === (prefs.fingerPose === "extendedCounts") ? "Extend" : "Fold"} ${step.kind.startsWith("upper") ? "the thumb" : "the fingers"} \xB7 ${step.params.place}` : `${S("fingerTrack")} \xB7 ${info.math}`;
-  }
-  return info;
-}
-function stepPanel(trace, index, step, group) {
-  const info = stepDescription(step);
-  return `<section class="step-panel teaching-panel">${state.view === "solver" ? solverForm() : phaseHeader()}${contextHTML(group, step)}<div class="step-body"><div class="step-kicker"><span>${W("move")} ${index + 1} / ${trace.steps.length}</span>${btn(icon("sound"), "readStep", "icon-button", `aria-label="${T("listen")}"`)}</div><h2 id="step-heading">${esc(info.text)}</h2><div class="step-math" dir="ltr">${esc(info.math)}</div>${state.view === "learn" ? `<div class="idea-inline"><span>${state.lesson.parts ? `${W("idea")} ${state.watchPart + 1} / ${state.lesson.parts.length}` : T("idea")}</span><p>${esc(lessonIdea(state.lesson))}</p></div>` : ""}<p class="skill-tag">${esc(skillName(step.lesson, lang))}</p><button data-action="explain" class="why-button" aria-expanded="${state.expanded}">${icon("info")} ${T("why")} <span>${state.expanded ? "\u2212" : "+"}</span></button>${state.expanded ? `<div class="explanation"><h3>${T("how")}</h3><p>${esc(info.text)} <b dir="ltr">${esc(info.math)}</b></p><h3>${T("idea")}</h3><p>${esc(learningIdea(step.lesson))}</p>${state.view === "solver" ? btn(T("lesson"), "relatedLesson", "text-button", `data-id="${lessonFor(step.lesson).id}"`) : ""}</div>` : ""}<div class="playback-tools">${state.lessonReview && state.view === "solver" ? btn(W("retryQuestion"), "retryQuestion", "text-button") : ""}${state.returnStack.length ? btn(T("backSolver"), "returnSolver", "text-button") : ""}${state.returnGym ? btn(T("gym"), "backGym", "text-button") : ""}${state.returnGym ? btn(S("firstMistake"), "markMistake", "text-button") : ""}${btn(S(autoPlaying ? "pause" : "autoPlay"), autoPlaying ? "pauseSteps" : "autoSteps", "text-button")}</div><div class="step-dots" aria-label="${T("step")}">${trace.groups.map((g) => `<button aria-label="${esc(g.label)}" title="${esc(g.label)}" data-action="jump" data-index="${g.start}" class="${g.id === group.id ? "active" : ""}"></button>`).join("")}</div></div><div class="step-nav">${btn(S("backShort"), "prev", "secondary", index === 0 && !(state.view === "learn" && state.lesson?.parts && state.watchPart) ? "disabled" : "")}${btn(index === trace.steps.length - 1 ? state.view === "learn" ? state.watchPart < (state.lesson.parts?.length || 1) - 1 ? W("nextIdea") : W("tryIt") : state.lessonReview ? W("retryQuestion") : W("replayAll") : W("nextMove"), index === trace.steps.length - 1 ? state.view === "learn" ? state.watchPart < (state.lesson.parts?.length || 1) - 1 ? "nextIdea" : "phaseTogether" : state.lessonReview ? "retryQuestion" : "resetSteps" : "next", "primary")}</div></section>`;
-}
-function solverForm() {
-  return `<form id="solver-form" class="solver-form"><label for="expression" class="sr-only">${T("equation")}</label><div class="solver-input-row"><input id="expression" name="expression" value="${esc(state.solverDraft)}" aria-describedby="solver-error" aria-invalid="${!!state.solverError}" dir="ltr" autocomplete="off" spellcheck="false" maxlength="2000"><button class="button primary" type="submit">${T("solve")}</button></div><div id="solver-error" class="form-error" role="alert">${esc(state.solverError)}</div></form>`;
-}
 function renderSolver() {
-  const { trace, index, step, group } = traceView();
-  $("#main").innerHTML = `<div class="solver-workspace"><div class="model-column">${modelCard(state.explore || step.after, step)}</div>${stepPanel(trace, index, step, group)}</div>`;
-  attachModel(state.explore || step.after, step.before, step.column);
+  const ops = ["+", "\u2212", "\xD7", "\xF7", "(", ")", ".", "/", "^"];
+  const examples = ["82 \u2212 56", "999 + 1", "12.50 \u2212 3.75", "23 \xD7 14", "156 \xF7 12", "1/3 + 1/6", "\u22123 \xD7 4", "2*x+3=15"];
+  $("#main").innerHTML = `<div class="page-heading"><div><p class="eyebrow">${P("solveEyebrow", lang)}</p><h1>${T("solver")}</h1></div></div><section class="solve-card"><p class="solve-lead">${P("solveLead", lang)}</p><form id="solver-form" class="solver-form"><label for="expression" class="sr-only">${T("equation")}</label><div class="solver-input-row"><input id="expression" name="expression" value="${esc(state.solverDraft)}" placeholder="82 \u2212 56" aria-describedby="solver-error" aria-invalid="${!!state.solverError}" dir="ltr" autocomplete="off" spellcheck="false" maxlength="2000" enterkeyhint="go"><button class="button primary" type="submit">${T("solve")}</button></div><div class="op-keys" role="group" aria-label="${P("solveKeys", lang)}">${ops.map((k) => `<button type="button" class="button secondary" data-action="opkey" data-key="${esc(k)}" aria-label="${esc(k)}">${esc(k)}</button>`).join("")}<button type="button" class="button text-button" data-action="clearSolver">${P("clear", lang)}</button></div><div id="solver-error" class="form-error" role="alert">${esc(state.solverError)}</div></form><h2 class="solve-sub">${P("tryExample", lang)}</h2><div class="example-choices">${examples.map((e) => btn(esc(e), "example", "secondary", `data-expression="${esc(e)}"`)).join("")}</div></section>`;
 }
-function renderLesson() {
-  const l = state.lesson;
-  $("#main").innerHTML = `<div id="lesson-content"></div>`;
-  if (state.phase === "watch") {
-    const { trace, index, step, group } = traceView();
-    $("#lesson-content").innerHTML = `<div class="solver-workspace"><div class="model-column">${modelCard(state.explore || step.after, step)}</div>${stepPanel(trace, index, step, group)}</div>`;
-    attachModel(state.explore || step.after, step.before, step.column);
-  } else if (state.phase === "together") {
-    renderGuided(l);
-  } else if (state.phase === "alone") {
-    renderRecall(l);
-  } else
-    $("#lesson-content").innerHTML = `<section class="completion">${workspaceHeading()}<span class="completion-icon">${icon("check")}</span><p class="eyebrow">${T("finish")}</p><h2>${esc(L(l))}</h2><p>${T(progressStatus(l))}</p><p>${T("reviewDue")} \xB7 ${new Intl.DateTimeFormat(lang, { month: "short", day: "numeric" }).format(new Date(state.progress.lessons[l.id]?.due || Date.now() + 864e5))}</p><div class="row">${btn(T("allLessons"), "allLessons", "secondary")}${btn(l.journey === "normal" && l.order === normalLessons.length - 1 ? W("goMastery") : W("nextLesson"), "nextLesson", "primary")}</div></section>`;
-}
-function answerForm() {
-  return `<form id="answer-form" class="answer-form"><label for="answer" class="sr-only">${T("answer")}</label><input id="answer" name="answer" inputmode="${state.lesson && ["fractions", "negative", "divide", "equations"].includes(state.lesson.skill) ? "text" : "decimal"}" autocomplete="off" placeholder="${T("answer")}" maxlength="80" dir="ltr" ${state.feedback?.correct ? "disabled" : ""}><button class="button primary" ${state.feedback?.correct ? "disabled" : ""}>${T("check")}</button></form>`;
-}
-function feedbackHTML() {
-  const f = state.feedback;
-  if (!f) return "";
-  return `<div class="feedback ${f.correct ? "success" : "try"}" role="status"><strong>${T(f.correct ? "correct" : "retry")}</strong>${f.expected ? `<span dir="ltr">${esc(f.expected)}</span>` : ""}${f.correct ? btn(T(state.phase === "together" ? "alone" : "continue"), "continueAnswer", "text-button") : btn(T("show"), "showLesson", "text-button")}</div>`;
-}
-function goStep(index) {
-  model?.finish();
-  const trace = state.view === "solver" ? state.solver : state.lessonTrace;
-  index = Math.max(0, Math.min(trace.steps.length - 1, index));
-  if (state.view === "solver") state.solverIndex = index;
-  else state.lessonIndex = index;
-  state.locked = true;
-  state.explore = null;
-  saveProgress();
-  render();
-}
-function solveInput(expr) {
-  stopAuto();
-  state.feedback = null;
+function solveInput(expr, at = 0, fromElsewhere = false) {
   try {
     const trace = solve(expr);
-    state.solver = trace;
-    state.solverDraft = trace.source;
-    state.solverError = "";
-    state.solverIndex = 0;
-    state.explore = null;
-    state.locked = true;
-    state.view = "solver";
-    state.expanded = false;
-    render();
+    if (!fromElsewhere) {
+      state.solverDraft = trace.source;
+      state.solverError = "";
+    }
+    openSolution(expr, { at });
     return trace;
-  } catch (e) {
+  } catch {
+    if (fromElsewhere) {
+      toast(P("solveError", lang));
+      return null;
+    }
     state.solverDraft = String(expr);
-    state.solverError = `${T("error")} \xB7 ${S("examples")}: 82 \u2212 56`;
+    state.solverError = P("solveError", lang);
     const target = $("#solver-error");
     if (target) target.textContent = state.solverError;
-    else toast(T("error"));
-    const input = $("#expression");
-    if (input) {
-      input.setAttribute("aria-invalid", "true");
-      input.value = state.solverDraft;
-    }
+    $("#expression")?.setAttribute("aria-invalid", "true");
     return null;
   }
+}
+function showUnitCheck(unit) {
+  state.assessmentUnit = unit;
+  const supportsHands = lessons.some((l) => l.unit === unit && handCompatible(l.example));
+  const source = state.track === "mental" ? "mental" : state.track === "fingers" && supportsHands ? "hands" : "abacus";
+  dialog(
+    T("assessment"),
+    `<h3>${esc(lang === "bn" ? units[unit][1] : units[unit][0])}</h3><p>${S("checkNote")}</p><form id="assessment-options"><label>${T("mode")}<select name="source">${["abacus", "hands", "mental"].filter((x) => x !== "hands" || supportsHands).map((x) => `<option value="${x}" ${x === source ? "selected" : ""}>${x === "mental" ? S("mentalTrack") : T(x === "hands" ? "hands" : "abacus")}</option>`).join("")}</select></label><label class="toggle-label"><input type="checkbox" name="timed">${S("timedCheck")}</label></form>`,
+    btn(T("start"), "startAssessment", "primary")
+  );
+}
+function beginAssessment() {
+  const form = $("#assessment-options"), fd = new FormData(form);
+  const a = createAssessment(state.assessmentUnit, String(fd.get("source")), Date.now(), fd.get("timed") === "on");
+  a.unitName = lang === "bn" ? units[a.unit][1] : units[a.unit][0];
+  closeDialog();
+  openCheck(a);
+}
+function showGuide() {
+  dialog(
+    S("guide"),
+    `<ol class="guide-list">${[1, 2, 3, 4].map((n) => `<li>${P(`guide_${n}`, lang)}</li>`).join("")}</ol><div class="row">${btn(P("fingerTitle", lang), "fingerGuide", "secondary")}${btn(S("settings"), "settings", "secondary")}</div>`
+  );
+}
+function showFingerIntro() {
+  const el = dialog(
+    P("fingerTitle", lang),
+    `<p>${P("fingerBody", lang)}</p><div class="finger-demo"><div id="finger-demo" class="finger-demo-board"></div><p class="finger-total">${P("boardShows", lang)}: <b id="demo-value" dir="ltr">0</b></p></div>`,
+    btn(P("gotIt", lang), "finishFingerGuide", "primary")
+  );
+  dialogDemo = new FingerBoard(el.querySelector("#finger-demo"), { rods: 2, interactive: true, t: (k) => P(k, lang), onChange: ({ value }) => ($("#demo-value").textContent = value) });
+  dialogDemo.set([0, 0]);
+  dialogDemo.dispose = () => dialogDemo?.destroy?.();
 }
 function gymOptionsHTML() {
   const c = state.gymConfig, g = state.gym;
@@ -763,7 +429,7 @@ function syncGymOptions() {
 }
 function renderGym() {
   const c = state.gymConfig, active = ["playing", "answer"].includes(state.gym?.status);
-  $("#main").innerHTML = `${workspaceHeading()}<div class="page-heading"><div><h1>${T("gym")}</h1><span class="quiet-label">${T(c.type)} \xB7 ${c.support === "blur" ? S("blur") : T(c.support === "visible" ? "visible" : "hidden")}</span></div>${btn(S("sessionOptions"), "gymOptions", "secondary", active ? "disabled" : "")}</div><div class="gym-layout"><section class="gym-stage" id="gym-stage" aria-label="${T("session")}"></section></div>`;
+  $("#main").innerHTML = `<div class="page-heading"><div><h1>${T("gym")}</h1><span class="quiet-label">${T(c.type)} \xB7 ${c.support === "blur" ? S("blur") : T(c.support === "visible" ? "visible" : "hidden")}</span></div>${btn(S("sessionOptions"), "gymOptions", "secondary", active ? "disabled" : "")}</div><div class="gym-layout"><section class="gym-stage" id="gym-stage" aria-label="${T("session")}"></section></div>`;
   renderGymStage();
 }
 function renderGymStage() {
@@ -783,7 +449,7 @@ function renderGymStage() {
     return;
   }
   const q = g.question;
-  el.innerHTML = `<div class="gym-live-head"><span>${T(c.type)}</span><span id="gym-clock">${c.duration ? `${T("remaining")}: ${c.duration}s` : T("untimed")}</span></div><div class="flash-count" id="flash-count"></div><div class="flash-number" id="flash-number" dir="ltr">${g.status === "playing" ? T("ready") : g.status === "feedback" ? T(g.last.correct ? "correct" : "retry") : "?"}</div><div id="gym-support" class="gym-support"></div><div id="gym-answer-area">${g.status === "answer" ? gymAnswerForm(q) : g.status === "feedback" ? `<p dir="ltr" class="gym-result">${esc(q.expression)} = ${g.revealed ? esc(q.expected) : "?"}</p><p>${T("time")}: ${(g.last.ms / 1e3).toFixed(2)}s</p><div class="row">${btn(T("continue"), "nextGym", "primary")}${!g.last.correct ? btn(S("compare"), "gymReveal", "secondary") : ""}${btn(T("show"), "gymReview", "secondary")}</div>` : ""}</div><div class="gym-bottom">${btn(T("stop"), "finishGym", "text-button")}<span>${g.results.filter((a) => a.correct).length} / ${g.results.length} ${T("correct")}</span></div>`;
+  el.innerHTML = `<div class="gym-live-head"><span>${T(c.type)}</span><span id="gym-clock">${c.duration ? `${T("remaining")}: ${c.duration}s` : T("untimed")}</span></div><div class="flash-count" id="flash-count"></div><div class="flash-number" id="flash-number" dir="ltr">${g.status === "playing" ? T("ready") : g.status === "feedback" ? T(g.last.correct ? "correct" : "retry") : "?"}</div><div id="gym-support" class="gym-support"></div><div id="gym-answer-area">${g.status === "answer" ? gymAnswerForm(q) : g.status === "feedback" ? `<p dir="ltr" class="gym-result">${esc(q.expression)} = ${g.revealed ? esc(q.expected) : "?"}</p><p>${T("time")}: ${(g.last.ms / 1e3).toFixed(2)}s</p><div class="row">${btn(T("continue"), "nextGym", "primary")}${!g.last.correct ? btn(S("compare"), "gymReveal", "secondary") : ""}${btn(T("show"), "gymReview", "secondary")}</div>` : ""}</div><div class="gym-bottom">${btn(T("stop"), "finishGym", "text-button")}<span>${P("scoreLine", lang, { right: g.results.filter((a) => a.correct).length, total: g.results.length })}</span></div>`;
 }
 function gymAnswerForm(q) {
   return q.calendar ? `<form id="gym-answer-form" class="answer-form"><label class="sr-only" for="gym-answer">${T("answer")}</label><select id="gym-answer" name="answer">${Array.from({ length: 7 }, (_, i) => `<option value="${i}">${new Intl.DateTimeFormat(lang, { weekday: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2023, 0, 1 + i)))}</option>`).join("")}</select><button class="button primary">${T("check")}</button></form>` : `<form id="gym-answer-form" class="answer-form"><label class="sr-only" for="gym-answer">${T("answer")}</label><input id="gym-answer" name="answer" inputmode="${state.gymConfig.type === "mixed" ? "text" : "decimal"}" autocomplete="off" placeholder="${T("answer")}" maxlength="80" dir="ltr"><button class="button primary">${T("check")}</button></form>`;
@@ -839,6 +505,26 @@ function startGym() {
   };
   nextGym();
 }
+/** The picture of the beads (or fingers) shown while numbers flash in the mental gym. */
+function makeSupport(host, source) {
+  let board = null;
+  return {
+    set(snap) {
+      if (!snap || snap.raw === null || snap.raw === undefined) return;
+      if (source === "hands") {
+        board ||= new FingerBoard(host, { rods: 2, t: (k) => P(k, lang) });
+        board.set(snap);
+        return;
+      }
+      const need = layoutFor([snap], board?.rods || 3);
+      if (!board || need.rods > board.rods || need.scale !== board.scale) board = new Soroban(host, { rods: need.rods, scale: need.scale, labels: false, t: (k) => P(k, lang) });
+      board.set(snap);
+    },
+    dispose() {
+      board?.destroy();
+    },
+  };
+}
 function nextGym() {
   const g = state.gym;
   if (!g) return;
@@ -854,12 +540,7 @@ function nextGym() {
   let support = null;
   if (cfg.support !== "hidden" && !g.question.calendar) {
     $("#gym-support").innerHTML = '<div class="model" id="support-model"></div>';
-    supportModel = support = new BeadModel($("#support-model"), {
-      onLocked: () => toast(S("stageHint")),
-      prefs: () => ({ ...prefs, motion: false }),
-      lang: () => lang
-    });
-    support.mode = cfg.modelSource || "abacus";
+    supportModel = support = makeSupport($("#support-model"), cfg.modelSource || "abacus");
     if (cfg.support === "blur") $("#gym-support").classList.add("obscured");
   }
   const pace = cfg.pace;
@@ -1166,323 +847,7 @@ function read(text) {
   utterance.rate = 0.86;
   speechSynthesis.speak(utterance);
 }
-function checkLesson(value, isModel = false) {
-  if (state.feedback?.correct) return;
-  const l = state.lesson;
-  const expr = state.phase === "together" ? l.example : state.lessonQuestions[state.answerIndex % state.lessonQuestions.length];
-  const expected = solve(expr).result;
-  const correct = answerEquals(value, expected);
-  state.feedback = { correct, expected: null };
-  if (state.phase === "alone")
-    recordAttempt(state.progress, {
-      lessonId: l.id,
-      correct,
-      ms: performance.now() - state.answerStart,
-      hinted: state.hinted,
-      expression: expr,
-      answer: value,
-      expected,
-      mode: "recall",
-      config: {
-        source: state.modelMode,
-        support: state.mentalRevealed ? "visible" : state.track === "mental" || l.skill === "mental" ? "hidden" : "visible",
-        actions: state.practice?.actions.slice(-8) || []
-      }
-    });
-  saveProgress();
-  if ($("#feedback")) $("#feedback").innerHTML = feedbackHTML();
-  if (correct)
-    $$("#answer-form input,#answer-form button").forEach(
-      (e) => e.disabled = true
-    );
-  if (correct)
-    $('[data-action="continueAnswer"]')?.focus({ preventScroll: true });
-}
-function reviewLessonMistake() {
-  const fields = [
-    "lesson",
-    "lessonTrace",
-    "phase",
-    "lessonIndex",
-    "watchPart",
-    "lessonQuestions",
-    "answerIndex",
-    "answerStart",
-    "practice",
-    "practiceCursor",
-    "mentalStage",
-    "mentalRevealed",
-    "modelMode",
-    "explore",
-    "firstError"
-  ];
-  const saved = Object.fromEntries(fields.map((k) => [k, state[k]]));
-  const expr = state.phase === "alone" ? state.lessonQuestions[state.answerIndex] : state.lesson.example;
-  state.lessonReview = saved;
-  state.hinted = true;
-  solveInput(expr);
-  focusWorkspace();
-}
-function retryQuestion() {
-  if (!state.lessonReview) return;
-  const saved = state.lessonReview;
-  state.lessonReview = null;
-  stopAuto();
-  closeDialog();
-  Object.assign(state, saved);
-  state.view = "learn";
-  state.feedback = null;
-  state.checkpointFeedback = null;
-  state.hinted = true;
-  state.modelFocus = false;
-  render();
-  $("#answer")?.focus({ preventScroll: true });
-}
-function guidedMoveText(step) {
-  if (!["en", "bn"].includes(lang) || state.modelMode === "hands")
-    return stepDescription(step).text;
-  const amount = step.params.amount;
-  const place = String(step.params.place);
-  const column = {
-    en: {
-      1: "ones",
-      10: "tens",
-      100: "hundreds",
-      0.1: "tenths",
-      0.01: "hundredths"
-    },
-    bn: {
-      1: "\u098F\u0995\u0995\u09C7\u09B0",
-      10: "\u09A6\u09B6\u0995\u09C7\u09B0",
-      100: "\u09B6\u09A4\u0995\u09C7\u09B0",
-      0.1: "\u09A6\u09B6 \u09AD\u09BE\u0997\u09C7\u09B0 \u098F\u0995 \u09AD\u09BE\u0997\u09C7\u09B0",
-      0.01: "\u098F\u0995\u09B6\u09CB \u09AD\u09BE\u0997\u09C7\u09B0 \u098F\u0995 \u09AD\u09BE\u0997\u09C7\u09B0"
-    }
-  }[lang][place];
-  const where = column ? lang === "bn" ? `${column} \u0998\u09B0\u09C7` : `in the ${column} column` : lang === "bn" ? `${place}-\u098F\u09B0 \u0998\u09B0\u09C7` : `in the ${place} column`;
-  const on = step.kind.endsWith("On");
-  if (lang === "bn")
-    return `${where} ${step.kind.startsWith("upper") ? "\u09AA\u09BE\u0981\u099A\u09C7\u09B0 \u09AA\u09C1\u0981\u09A4\u09BF\u099F\u09BE" : `\u09A8\u09BF\u099A\u09C7\u09B0 ${amount}\u099F\u09BF \u09AA\u09C1\u0981\u09A4\u09BF`} ${on ? "\u09AE\u09BE\u099D\u09C7\u09B0 \u09A6\u09BE\u0997\u09C7\u09B0 \u0995\u09BE\u099B\u09C7 \u0986\u09A8\u09CB" : "\u09AE\u09BE\u099D\u09C7\u09B0 \u09A6\u09BE\u0997 \u09A5\u09C7\u0995\u09C7 \u09B8\u09B0\u09BE\u0993"}`;
-  return `${on ? "Bring" : "Move"} ${step.kind.startsWith("upper") ? "the five-bead" : `${amount} lower bead${Number(amount) === 1 ? "" : "s"}`} ${on ? "to" : "away from"} the bar ${where}.`;
-}
-function stopAuto() {
-  clearTimeout(autoTimer);
-  autoTimer = null;
-  autoPlaying = false;
-}
-function playSteps() {
-  stopAuto();
-  autoPlaying = true;
-  render();
-  const tick = () => {
-    if (!autoPlaying || document.hidden) return;
-    const { trace, index } = traceView();
-    if (index >= trace.steps.length - 1) {
-      stopAuto();
-      render();
-      return;
-    }
-    goStep(index + 1);
-    autoTimer = setTimeout(tick, prefs.duration + 700);
-  };
-  autoTimer = setTimeout(tick, prefs.duration + 700);
-}
-function switchModel(mode) {
-  closeDialog();
-  stopAuto();
-  model?.finish();
-  state.modelMode = mode;
-  model && (model.history = []);
-  render();
-  if (mode === "hands" && !prefs.fingerSeen) showFingerIntro();
-}
-function practiceSnapshot(step) {
-  const revealed = state.checkpointFeedback?.correct || state.mentalRevealed;
-  return state.explore || {
-    ...revealed ? step.after : step.before,
-    ...state.practice?.pose ? { pose: state.practice.pose } : {}
-  };
-}
-function startGuided() {
-  stopAuto();
-  const trace = state.lessonTrace = solve(state.lesson.example);
-  const first = trace.steps.findIndex((s) => s.kind === "operation");
-  const moves2 = [
-    "fractions",
-    "negative",
-    "equations",
-    "order",
-    "powers",
-    "roots",
-    "root-estimate",
-    "percent"
-  ].includes(state.lesson.skill) ? [] : actionSteps(trace).filter((s) => s.traceIndex >= Math.max(0, first));
-  state.practice = { trace, steps: moves2, actions: [], pose: null };
-  state.practiceCursor = 0;
-  state.checkpointFeedback = null;
-  state.feedback = null;
-  state.firstError = null;
-  state.explore = null;
-  state.mentalRevealed = false;
-  state.mentalStage = "see";
-  state.phase = "together";
-  state.practiceLocked = false;
-  state.locked = false;
-  render();
-}
-function supportTabs() {
-  return `<div class="support-tabs" aria-label="${S("support")}">${["see", "blur", "hide"].map((k) => `<button data-action="mentalStage" data-stage="${k}" aria-pressed="${state.mentalStage === k}" class="${state.mentalStage === k ? "selected" : ""}">${S(k)}</button>`).join("")}</div>`;
-}
-function renderGuided(l) {
-  if (!state.practice) {
-    startGuided();
-    return;
-  }
-  const pr = state.practice, step = pr.steps[state.practiceCursor];
-  if (!step) {
-    const snap = pr.trace.steps.find(
-      (s) => [
-        "operation",
-        "multiplyPlan",
-        "dividePlan",
-        "rootCheck",
-        "power"
-      ].includes(s.kind)
-    )?.before || pr.trace.steps[0].after;
-    state.locked = true;
-    $("#lesson-content").innerHTML = `<div class="solver-workspace"><div class="model-column">${modelCard({ ...snap, raw: null })}</div><section class="practice-prompt">${phaseHeader()}<span class="pill">${T("together")}</span><h2>${S("goal")}</h2><div class="recall-expression" dir="ltr">${esc(l.example)}</div>${answerForm()}<div id="feedback">${feedbackHTML()}</div></section></div>`;
-    attachModel({ ...snap, raw: null });
-    return;
-  }
-  const group = pr.trace.groups[step.group], mental = state.mentalStage !== "see", revealed = state.mentalRevealed || state.checkpointFeedback?.correct;
-  state.locked = mental || !!state.practiceLocked;
-  const move = stepDescription(step).math;
-  $("#lesson-content").innerHTML = `<div class="solver-workspace"><div class="model-column">${modelCard(practiceSnapshot(step))}</div><section class="step-panel practice-prompt">${phaseHeader()}${contextHTML(group, step)}<div class="practice-body">${state.lesson.skill === "mental" ? supportTabs() : ""}<div class="step-kicker">${T("together")} \xB7 ${state.practiceCursor + 1} / ${pr.steps.length}</div><h2>${mental ? S("predict") : esc(guidedMoveText(step))}</h2><div class="step-math" dir="ltr">${move}</div><p>${S(mental ? "stageHint" : "checkpoint")}</p></div><div class="practice-actions">${mental ? `<form id="checkpoint-form" class="answer-form"><label class="sr-only" for="checkpoint-answer">${T("answer")}</label><input id="checkpoint-answer" name="answer" inputmode="${state.lesson && ["fractions", "negative", "divide", "equations"].includes(state.lesson.skill) ? "text" : "decimal"}" maxlength="80" autocomplete="off" dir="ltr" placeholder="${T("answer")}" ${state.checkpointFeedback?.correct ? "disabled" : ""}><button class="button primary" ${state.checkpointFeedback?.correct ? "disabled" : ""}>${T("check")}</button></form>` : btn(T("check"), "checkModel", "primary", state.checkpointFeedback?.correct ? "disabled" : "")}<div id="checkpoint-feedback">${checkpointFeedbackHTML()}</div><div class="playback-tools">${btn(S("revealHint"), "checkpointHint", "text-button")}</div>${state.firstError ? `<p class="fine">${S("firstMistake")} \xB7 ${state.firstError.index + 1}</p>` : ""}</div></section></div>`;
-  attachModel(practiceSnapshot(step));
-  const card = $(".model-card");
-  card.classList.toggle("obscured", state.mentalStage === "blur" && !revealed);
-  card.classList.toggle("concealed", state.mentalStage === "hide" && !revealed);
-  const stage = $(".model-stage");
-  stage.setAttribute("aria-hidden", String(mental && !revealed));
-  stage.inert = mental && !revealed;
-  model.setHidden(mental && !revealed);
-  if (mental && !revealed) $("#total").textContent = "?";
-  if (state.mentalStage === "hide" && !revealed)
-    stage.insertAdjacentHTML(
-      "beforeend",
-      `<div class="mental-cover">${icon("learn")}<span>${S("answerHidden")}</span></div>`
-    );
-}
-function checkpointFeedbackHTML() {
-  const f = state.checkpointFeedback;
-  if (!f) return "";
-  return `<div class="feedback ${f.correct ? "success" : "try"}" role="status"><strong>${T(f.correct ? "correct" : "retry")}</strong>${f.correct ? `<span dir="ltr">${f.expected}</span>${btn(S("nextShort"), "advanceCheckpoint", "text-button")}` : `<span>${W(state.mentalStage === "see" ? "boardShows" : "entered")}: <b dir="ltr">${esc(f.actual)}</b></span>` + btn(S("compare"), "checkpointHint", "text-button")}</div>`;
-}
-function checkCheckpoint(value) {
-  const pr = state.practice, step = pr?.steps[state.practiceCursor];
-  if (!step) {
-    checkLesson(value);
-    return;
-  }
-  if (state.checkpointFeedback?.correct) return;
-  const correct = answerEquals(value, step.after.value);
-  state.checkpointFeedback = {
-    correct,
-    expected: step.after.value,
-    actual: String(value)
-  };
-  if (!correct && !state.firstError)
-    state.firstError = {
-      index: state.practiceCursor,
-      traceIndex: step.traceIndex,
-      skill: misconception(step),
-      answer: value
-    };
-  recordAttempt(state.progress, {
-    correct,
-    hinted: state.mentalRevealed,
-    mode: "checkpoint",
-    expression: pr.trace.source,
-    answer: value,
-    expected: step.after.value,
-    config: {
-      lesson: state.lesson.id,
-      source: state.modelMode,
-      support: state.mentalStage,
-      traceIndex: step.traceIndex,
-      skill: misconception(step),
-      actions: pr.actions.slice(-8)
-    }
-  });
-  if (correct) {
-    pr.pose = state.explore?.pose || null;
-    state.explore = null;
-    state.mentalRevealed = true;
-  }
-  saveProgress();
-  render();
-}
-function advanceCheckpoint() {
-  if (!state.checkpointFeedback?.correct) return;
-  const pr = state.practice;
-  state.practiceCursor++;
-  state.checkpointFeedback = null;
-  state.explore = null;
-  state.mentalRevealed = false;
-  if (state.practiceCursor >= pr.steps.length) {
-    if (state.lesson.skill === "mental" && state.mentalStage !== "hide") {
-      state.mentalStage = state.mentalStage === "see" ? "blur" : "hide";
-      state.practiceCursor = 0;
-      pr.pose = null;
-    } else {
-      state.phase = "alone";
-      state.practice = null;
-      state.answerStart = 0;
-      state.answerIndex = 0;
-      state.feedback = null;
-      state.locked = true;
-    }
-  }
-  render();
-}
-function renderRecall(l) {
-  if (!state.lessonQuestions.length)
-    state.lessonQuestions = freshQuestions(l, Date.now(), state.modelMode);
-  const expr = state.lessonQuestions[state.answerIndex % state.lessonQuestions.length], trace = solve(expr);
-  if (!state.practice || state.practice.trace.source !== expr || state.practice.answerIndex !== state.answerIndex) {
-    const start = trace.steps.find((s) => s.kind === "operation")?.before || {
-      raw: "0",
-      scale: 0,
-      value: "0"
-    };
-    state.practice = {
-      trace,
-      start,
-      actions: [],
-      answerIndex: state.answerIndex
-    };
-    state.explore = null;
-    state.mentalRevealed = false;
-    state.answerStart = performance.now();
-  }
-  const mental = state.track === "mental" || l.skill === "mental", hidden = mental && !state.mentalRevealed;
-  state.locked = hidden;
-  $("#lesson-content").innerHTML = `<div class="solver-workspace"><div class="model-column">${modelCard(state.explore || state.practice.start)}</div><section class="recall-card">${phaseHeader()}<span class="pill">${T("alone")} \xB7 ${state.answerIndex + 1} / ${state.lessonQuestions.length}</span><h2>${S("fresh")}</h2><div class="recall-expression" dir="ltr">${esc(expr.replaceAll("*", "\xD7").replaceAll("/", "\xF7"))}</div><p>${T("noRush")}</p>${answerForm()}<div id="feedback">${feedbackHTML()}</div><div class="playback-tools">${btn(T("hint"), "hint", "text-button")}${hidden ? btn(S("compare"), "recallReveal", "text-button") : ""}</div></section></div>`;
-  attachModel(state.explore || state.practice.start);
-  model.setHidden(hidden);
-  if (hidden) {
-    $(".model-card").classList.add("concealed");
-    $(".model-stage").inert = true;
-    $(".model-stage").setAttribute("aria-hidden", "true");
-    $("#total").textContent = "?";
-    $(".model-stage").insertAdjacentHTML(
-      "beforeend",
-      `<div class="mental-cover">${icon("learn")}<span>${S("answerHidden")}</span></div>`
-    );
-  }
-}
 function dialog(title, body, footer = "") {
-  stopAuto();
   if (state.view === "gym" && ["playing", "answer"].includes(state.gym?.status)) {
     cancelGym(true);
     renderGym();
@@ -1539,12 +904,6 @@ function showSetup() {
     btn(P("startLearning", lang), "finishSetup", "primary")
   );
 }
-function showModelTools() {
-  dialog(
-    S("modelControls"),
-    `<div class="segmented dialog-model-mode">${["abacus", "hands"].map((mode) => btn(T(mode === "hands" ? "hands" : "abacus"), "modelMode", mode === state.modelMode ? "active" : "", `data-mode="${mode}" aria-pressed="${mode === state.modelMode}"`)).join("")}</div><div class="model-control-grid">${state.view === "solver" || state.view === "learn" && state.phase === "watch" ? btn(W(state.locked ? "explore" : "restore"), "lock", "secondary") : ""}${btn(S(state.modelFocus ? "exitFocus" : "focus"), "enlargeModel", "secondary")}${btn(S("resetView"), "resetView", "secondary")}${state.locked ? btn(S("replay"), "replay", "secondary") : btn(S("undo"), "undo", "secondary") + btn(S("resetExplore"), "clearModel", "secondary")}${btn("\u2212", "zoomOut", "secondary", `aria-label="${S("zoomOut")}"`)}${btn("\uFF0B", "zoomIn", "secondary", `aria-label="${S("zoomIn")}"`)}${btn("\u2039", "panLeft", "secondary", `aria-label="${S("panLeft")}"`)}${btn("\u203A", "panRight", "secondary", `aria-label="${S("panRight")}"`)}</div><p class="fine">${state.modelMode === "hands" ? S(prefs.fingerPose === "extendedCounts" ? "raiseHelp" : "bendHelp") : S("setupNote")}</p><div class="row">${state.view === "learn" && state.lesson ? btn(W("lessonPlan"), "lessonPlan", "text-button") : ""}${state.view === "solver" ? btn(S("examples"), "examplesDialog", "text-button") : ""}${btn(S("settings"), "settings", "text-button")}${btn(T("account"), "nav", "text-button", 'data-view="account"')}</div>`
-  );
-}
 function showExamples() {
   dialog(
     S("examples"),
@@ -1554,70 +913,8 @@ function showExamples() {
 function showSettings() {
   dialog(
     S("settings"),
-    `<details open><summary>${S("appearance")}</summary><div class="preference-grid">${preferenceSelect(
-      "density",
-      "layout",
-      [
-        ["auto", "auto"],
-        ["compact", "compact"],
-        ["chunky", "chunky"]
-      ]
-    )}${preferenceSelect("theme", "theme", [
-      ["system", "system"],
-      ["light", "light"],
-      ["dark", "dark"]
-    ])}${preferenceSelect(
-      "surface",
-      "palette",
-      Object.keys({ classic: 1, wood: 1, cyber: 1, orchid: 1 }).map((k) => [
-        k,
-        k
-      ])
-    )}<label>${S("colour")}<input data-pref="customColor" type="color" value="${prefs.customColor}"></label>${preferenceSelect(
-      "renderer",
-      "rendering",
-      [
-        ["3d", "three"],
-        ["2d", "flat"]
-      ]
-    )}</div></details><details open><summary>${S("controls")}</summary><div class="preference-grid">${preferenceSelect(
-      "fingerStyle",
-      "fingerControl",
-      [
-        ["individual", "individual"],
-        ["abacus", "abacusStyle"]
-      ]
-    )}${preferenceSelect("fingerPose", "fingerPose", [
-      ["foldedCounts", "foldedCounts"],
-      ["extendedCounts", "extendedCounts"]
-    ])}${preferenceSelect("duration", "movement", [
-      [500, "0.5 s"],
-      [1e3, "1 s"],
-      [2e3, "2 s"],
-      [3e3, "3 s"]
-    ])}<label class="toggle-label"><input data-pref="motion" type="checkbox" ${prefs.motion ? "checked" : ""}>${S("ambient")}</label><label class="toggle-label"><input data-pref="lowPower" type="checkbox" ${prefs.lowPower ? "checked" : ""}>${S("lowPower")}</label></div>${btn(S("fingerIntro"), "fingerGuide", "text-button")}</details><details><summary>${S("learning")}</summary><div class="preference-grid">${preferenceSelect("integerColumns", "integerColumns", [[0, "auto"], ...[1, 2, 3, 4, 6, 8, 12, 18].map((n) => [n, String(n)])])}${preferenceSelect("decimalColumns", "decimalColumns", [[0, "auto"], ...[1, 2, 3, 4, 6, 8].map((n) => [n, String(n)])])}<label class="toggle-label"><input data-pref="guide" type="checkbox" ${prefs.guide ? "checked" : ""}>${S("guide")}</label></div><p class="fine">${S("needed")}</p></details>`,
+    `<div class="preference-grid">${preferenceSelect("theme", "theme", [["system", "system"], ["light", "light"], ["dark", "dark"]])}${preferenceSelect("surface", "palette", ["classic", "wood", "cyber", "orchid"].map((k) => [k, k]))}${preferenceSelect("density", "layout", [["auto", "auto"], ["compact", "compact"], ["chunky", "chunky"]])}</div><div class="row">${btn(P("fingerTitle", lang), "fingerGuide", "text-button")}</div>`,
     `${btn(S("restoreDefaults"), "defaultPrefs", "secondary")}${btn(S("done"), "closeDialog", "primary")}`
-  );
-}
-function showFingerIntro() {
-  const el = dialog(
-    S("fingerIntro"),
-    `<p>${S("handsLimit")} ${S(prefs.fingerPose === "extendedCounts" ? "raiseHelp" : "bendHelp")}</p><div class="finger-mode-choices">${["individual", "abacus"].map((k) => `<button data-action="demoStyle" data-style="${k}" class="${prefs.fingerStyle === k ? "selected" : ""}"><b>${S(k === "individual" ? "individual" : "abacusStyle")}</b><span>${S(k === "individual" ? "individualHelp" : "abacusHelp")}</span></button>`).join("")}</div><p>${S("tryDemo")} \xB7 <b id="demo-value" dir="ltr">0</b></p><div id="finger-demo" class="model"></div>`,
-    btn(S("useMode"), "finishFingerGuide", "primary")
-  );
-  dialogDemo = new BeadModel(el.querySelector("#finger-demo"), {
-    prefs: () => ({ ...prefs, renderer: "2d" }),
-    lang: () => lang,
-    onChange: (s) => $("#demo-value").textContent = s.value
-  });
-  dialogDemo.mode = "hands";
-  dialogDemo.locked = false;
-  dialogDemo.set({ raw: "0", scale: 0, value: "0" });
-}
-function showGuide() {
-  dialog(
-    S("guide"),
-    `<p>${S("guideTip")}</p><ol class="guide-list"><li>${S("operation")}</li><li>${S("substep")}</li><li>${T("lockHint")}</li><li>${S("stageHint")}</li></ol><div class="row">${btn(S("fingerIntro"), "fingerGuide", "secondary")}${btn(S("settings"), "settings", "secondary")}</div>`
   );
 }
 function savePrefs() {
@@ -1625,183 +922,130 @@ function savePrefs() {
   applyPrefs(prefs);
   render();
 }
-document.addEventListener(
-  "click",
-  (e) => {
-    const el = e.target.closest("[data-action]");
-    if (!el || el.disabled) return;
-    const a = el.dataset.action;
-    const actions = {
-      journey: () => setJourney(el.dataset.journey),
-      explainer: () => openExplainer(el.dataset.id),
-      workspaceMenu: showWorkspaceMenu,
-      retryQuestion,
-      lessonPlan: showLessonPlan,
-      watchIdea: () => {
-        if (state.lesson.parts) watchIdea(Number(el.dataset.index));
-        else {
-          closeDialog();
-          state.phase = "watch";
-          state.lessonTrace = solve(state.lesson.example);
-          goStep(0);
-        }
-      },
-      nextIdea: () => watchIdea(state.watchPart + 1),
-      unitCheck: () => showUnitCheck(Number(el.dataset.unit)),
-      startAssessment: beginAssessment,
-      nextAssessment: nextAssessmentItem,
-      assessmentReveal: () => {
-        state.assessment.hinted = true;
-        state.assessment.revealed = true;
-        render();
-      },
-      changePassword: () => showAccountChange(false),
-      deleteAccount: () => showAccountChange(true),
-      retrySave: () => {
-        saveProgress();
-        render();
-      },
-      reloadSaved,
-      gymOptions: showGymOptions,
-      confirmImport,
-      modelTools: showModelTools,
-      examplesDialog: showExamples,
-      enlargeModel: () => {
-        closeDialog();
-        state.modelFocus = !state.modelFocus;
-        render();
-      },
-      reviewAttempt: () => {
-        const a2 = state.progress.attempts.find((a3) => a3.id === el.dataset.id);
-        if (!a2) return;
-        const trace = solveInput(a2.expression);
-        const index = a2.config?.traceIndex ?? a2.config?.firstMistake?.traceIndex;
-        if (trace && index !== void 0) goStep(index);
-      },
-      gymReveal: () => {
-        state.gym.revealed = true;
-        renderGymStage();
-      },
-      markMistake: () => {
-        if (state.gym?.last) {
-          const step = traceView().step;
-          state.gym.last.config.firstMistake = {
-            traceIndex: step.id,
-            skill: misconception(step)
-          };
-          saveProgress();
-          toast(`${S("firstMistake")} \xB7 ${step.id + 1}`);
-        }
-      },
-      settings: showSettings,
-      guide: showGuide,
-      closeDialog,
-      skipSetup: () => {
-        Object.assign(prefs, {
-          setupSeen: true,
-          density: "auto",
-          surface: "classic"
-        });
-        lang = "en";
-        state.modelMode = "abacus";
-        try {
-          localStorage.setItem("academy-language", "en");
-        } catch {
-        }
-        writePrefs(prefs);
-        closeDialog();
-        render();
-      },
-      finishSetup: () => {
-        prefs.setupSeen = true;
-        writePrefs(prefs);
-        closeDialog();
-        render();
-      },
-      fingerGuide: showFingerIntro,
-      finishFingerGuide: () => {
-        prefs.fingerSeen = true;
-        writePrefs(prefs);
-        closeDialog();
-        render();
-      },
-      demoStyle: () => {
-        prefs.fingerStyle = el.dataset.style;
-        writePrefs(prefs);
-        $("#studio-dialog").querySelectorAll('[data-action="demoStyle"]').forEach((b) => b.classList.toggle("selected", b === el));
-        if (dialogDemo) dialogDemo.set(dialogDemo.snapshot);
-      },
-      defaultPrefs: () => {
-        Object.assign(
-          prefs,
-          sanitizePrefs({ setupSeen: true, fingerSeen: prefs.fingerSeen })
-        );
-        savePrefs();
-        showSettings();
-      },
-      track: () => {
-        state.track = el.dataset.track;
-        state.lesson = null;
-        render();
-      },
-      switchAbacus: () => switchModel("abacus"),
-      panLeft: () => model?.pan(0.8),
-      panRight: () => model?.pan(-0.8),
-      zoomIn: () => model?.zoom(1.08),
-      zoomOut: () => model?.zoom(0.92),
-      resetView: () => model?.resetView(),
-      undo: () => {
-        closeDialog();
-        model?.undo();
-      },
-      clearModel: () => {
-        closeDialog();
-        model?.clear();
-      },
-      replay: () => {
-        closeDialog();
-        if (state.phase === "together") {
-          state.mentalRevealed = true;
-          render();
-        } else model?.replay(traceView().step.before);
-      },
-      focus: () => {
-        state.focus = !state.focus;
-        render();
-      },
-      autoSteps: playSteps,
-      pauseSteps: () => {
-        stopAuto();
-        render();
-      },
-      mentalStage: () => {
-        state.mentalStage = el.dataset.stage;
-        state.explore = null;
-        state.mentalRevealed = false;
-        state.checkpointFeedback = null;
-        render();
-      },
-      advanceCheckpoint,
-      checkpointHint: () => {
-        state.mentalRevealed = true;
-        state.hinted = true;
-        const step = state.practice?.steps[state.practiceCursor];
-        if (step) state.explore = step.after;
-        render();
-      },
-      recallReveal: () => {
-        state.mentalRevealed = true;
-        state.hinted = true;
-        render();
-      }
-    };
-    if (actions[a]) {
-      e.stopImmediatePropagation();
-      actions[a]();
-    }
-  },
-  true
-);
+document.addEventListener("click", (e) => {
+  const el = e.target.closest("[data-action]");
+  if (!el || el.disabled) return;
+  const a = el.dataset.action;
+  const actions = {
+    nav: () => {
+      closeDialog();
+      nav(el.dataset.view);
+    },
+    journey: () => setJourney(el.dataset.journey),
+    track: () => {
+      state.track = el.dataset.track;
+      render();
+    },
+    explainer: () => openExplainer(el.dataset.id),
+    openLesson: () => {
+      closeDialog();
+      openLesson(el.dataset.id);
+    },
+    unitCheck: () => showUnitCheck(Number(el.dataset.unit)),
+    startAssessment: beginAssessment,
+    example: () => {
+      closeDialog();
+      solveInput(el.dataset.expression);
+    },
+    opkey: () => insertAtCursor($("#expression"), el.dataset.key),
+    clearSolver: () => {
+      state.solverDraft = "";
+      state.solverError = "";
+      renderSolver();
+      $("#expression")?.focus();
+    },
+    reviewAttempt: () => {
+      const a2 = state.progress.attempts.find((a3) => a3.id === el.dataset.id);
+      if (!a2) return;
+      const index = a2.config?.traceIndex ?? a2.config?.firstMistake?.traceIndex ?? 0;
+      solveInput(a2.expression, index);
+    },
+    changePassword: () => showAccountChange(false),
+    deleteAccount: () => showAccountChange(true),
+    retrySave: () => {
+      saveProgress();
+      render();
+    },
+    reloadSaved,
+    confirmImport,
+    export: () => {
+      exportProgress();
+      if ($("#studio-dialog")?.dataset.kind === "import") showImportPreview();
+    },
+    signOut,
+    settings: showSettings,
+    guide: showGuide,
+    closeDialog,
+    examplesDialog: showExamples,
+    finishSetup: () => {
+      prefs.setupSeen = true;
+      writePrefs(prefs);
+      closeDialog();
+      render();
+    },
+    fingerGuide: showFingerIntro,
+    finishFingerGuide: () => {
+      prefs.fingerSeen = true;
+      writePrefs(prefs);
+      closeDialog();
+      render();
+    },
+    defaultPrefs: () => {
+      Object.assign(prefs, sanitizePrefs({ setupSeen: true, fingerSeen: prefs.fingerSeen }));
+      savePrefs();
+      showSettings();
+    },
+    gymOptions: showGymOptions,
+    gymReveal: () => {
+      state.gym.revealed = true;
+      renderGymStage();
+    },
+    preset: () => {
+      cancelGym();
+      state.gym = null;
+      state.gymConfig = { ...presets[el.dataset.preset] };
+      renderGym();
+      showGymOptions();
+    },
+    startGym,
+    nextGym,
+    finishGym,
+    newGym: () => {
+      state.gym = null;
+      renderGym();
+    },
+    applyPace: () => {
+      const next = suggestNext(state.progress.attempts, state.gymConfig);
+      if (next) state.gymConfig = next;
+      state.gym = null;
+      renderGym();
+    },
+    gymReview: () => {
+      const q = state.gym.question;
+      if (q.calendar) return toast(q.explanation);
+      solveInput(q.expression, 0, true);
+    },
+    reviewExpression: () => {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(el.dataset.expression)) return toast(el.dataset.expression);
+      solveInput(el.dataset.expression, 0, true);
+    },
+    readStep: () => read(el.dataset.text || ""),
+  };
+  if (actions[a]) {
+    e.stopImmediatePropagation();
+    actions[a]();
+  }
+}, true);
+document.addEventListener("click", (e) => {
+  const el = e.target.closest("[data-action]");
+  if (!el || el.disabled) return;
+  if (el.dataset.action === "allLessons") {
+    closeDialog();
+    closePlayer(true);
+    state.view = "learn";
+    render();
+  }
+});
 document.addEventListener("change", (e) => {
   if (e.target.id === "setup-language") {
     lang = e.target.value;
@@ -1819,44 +1063,15 @@ document.addEventListener("change", (e) => {
   const value = input.type === "checkbox" ? input.checked : input.value;
   Object.assign(prefs, sanitizePrefs({ ...prefs, [k]: value }));
   if (k === "surface")
-    prefs.customColor = {
-      classic: "#536be8",
-      wood: "#a96135",
-      cyber: "#00cbbd",
-      orchid: "#9762d1"
-    }[prefs.surface];
+    prefs.customColor = { classic: "#3458db", wood: "#a96135", cyber: "#00a99d", orchid: "#8a52c8" }[prefs.surface];
   savePrefs();
   if (k === "surface") {
     const picker = $('[data-pref="customColor"]');
     if (picker) picker.value = prefs.customColor;
   }
 });
-document.addEventListener("submit", (e) => {
-  if (e.target.id === "checkpoint-form") {
-    e.preventDefault();
-    checkCheckpoint(String(new FormData(e.target).get("answer")));
-  }
-});
 document.addEventListener("keydown", (e) => {
-  if ($("#studio-dialog") || e.target.closest("input,select,textarea") || e.ctrlKey || e.metaKey || e.altKey)
-    return;
-  if ((state.view === "solver" || state.view === "learn" && state.phase === "watch") && state.lessonTrace || state.view === "solver") {
-    if (e.key === "ArrowRight") {
-      e.preventDefault();
-      stopAuto();
-      goStep(traceView().index + 1);
-    }
-    if (e.key === "ArrowLeft") {
-      e.preventDefault();
-      stopAuto();
-      goStep(traceView().index - 1);
-    }
-  }
-  if (e.key === "Escape" && (state.focus || state.modelFocus)) {
-    state.focus = false;
-    state.modelFocus = false;
-    render();
-  }
+  if (e.key === "Escape" && $("#studio-dialog")) closeDialog();
 });
 globalThis.matchMedia?.("(prefers-color-scheme: dark)").addEventListener?.("change", () => {
   if (prefs.theme === "system") applyPrefs(prefs);
@@ -1873,208 +1088,19 @@ function resizeStudio() {
 globalThis.visualViewport?.addEventListener("resize", resizeStudio);
 globalThis.addEventListener?.("resize", resizeStudio);
 resizeStudio();
-document.addEventListener("click", (e) => {
-  const el = e.target.closest("[data-action]");
-  if (!el || el.disabled) return;
-  const a = el.dataset.action;
-  switch (a) {
-    case "nav":
-      if (el.dataset.view === "learn") state.lesson = null;
-      nav(el.dataset.view);
-      break;
-    case "openLesson":
-      closeDialog();
-      openLesson(el.dataset.id);
-      break;
-    case "allLessons":
-      closeDialog();
-      stopAuto();
-      state.lesson = null;
-      state.modelFocus = state.focus = false;
-      state.view = "learn";
-      render();
-      break;
-    case "nextLesson": {
-      if (state.lesson?.journey === "normal" && state.lesson.order === normalLessons.length - 1) {
-        setJourney("mastery");
-        break;
-      }
-      const path = state.lesson.journey === "normal" ? normalLessons : lessons;
-      const next = path.find((l) => l.order > state.lesson.order);
-      if (next) openLesson(next.id);
-      else {
-        state.lesson = null;
-        render();
-      }
-      break;
-    }
-    case "relatedLesson":
-      openLesson(el.dataset.id);
-      break;
-    case "returnSolver":
-      returnSolver();
-      break;
-    case "example":
-      closeDialog();
-      solveInput(el.dataset.expression);
-      break;
-    case "next":
-      stopAuto();
-      goStep(traceView().index + 1);
-      break;
-    case "prev":
-      stopAuto();
-      if (state.view === "learn" && state.watchPart && state.lessonIndex === 0) {
-        watchIdea(state.watchPart - 1);
-        goStep(state.lessonTrace.steps.length - 1);
-      } else goStep(traceView().index - 1);
-      break;
-    case "jump":
-      stopAuto();
-      goStep(Number(el.dataset.index));
-      break;
-    case "resetSteps":
-      stopAuto();
-      goStep(0);
-      break;
-    case "explain":
-      stopAuto();
-      state.expanded = !state.expanded;
-      render();
-      break;
-    case "modelMode":
-      switchModel(el.dataset.mode);
-      break;
-    case "lock":
-      closeDialog();
-      if (state.phase === "together" && state.view === "learn") {
-        if (state.mentalStage !== "see") {
-          toast(S("stageHint"));
-          break;
-        }
-        state.practiceLocked = !state.practiceLocked;
-        if (state.practiceLocked) {
-          state.explore = null;
-          model.history = [];
-        }
-        render();
-        break;
-      }
-      state.locked = !state.locked;
-      if (state.locked) state.explore = null;
-      model.history = [];
-      render();
-      break;
-    case "readStep": {
-      const s = traceView().step;
-      read(`${stepDescription(s).text}. ${learningIdea(s.lesson)}`);
-      break;
-    }
-    case "readLesson":
-      read(lessonIdea(state.lesson));
-      break;
-    case "phaseTogether":
-      startGuided();
-      break;
-    case "checkModel":
-      checkCheckpoint(model?.snapshot?.value || "0");
-      break;
-    case "continueAnswer":
-      if (state.phase === "together") {
-        state.phase = "alone";
-        state.answerIndex = 0;
-        state.answerStart = 0;
-        state.practice = null;
-      } else {
-        state.answerIndex++;
-        state.answerStart = 0;
-        state.practice = null;
-        if (state.answerIndex >= state.lessonQuestions.length)
-          state.phase = "complete";
-      }
-      state.feedback = null;
-      state.hinted = false;
-      state.explore = null;
-      render();
-      break;
-    case "hint":
-      state.hinted = true;
-      dialog(T("hint"), `<p>${esc(lessonIdea(state.lesson))}</p>`);
-      break;
-    case "showLesson":
-      reviewLessonMistake();
-      break;
-    case "preset":
-      cancelGym();
-      state.gym = null;
-      state.gymConfig = { ...presets[el.dataset.preset] };
-      renderGym();
-      showGymOptions();
-      break;
-    case "startGym":
-      startGym();
-      break;
-    case "nextGym":
-      nextGym();
-      break;
-    case "finishGym":
-      finishGym();
-      break;
-    case "newGym":
-      state.gym = null;
-      renderGym();
-      break;
-    case "applyPace": {
-      const next = suggestNext(state.progress.attempts, state.gymConfig);
-      if (next) state.gymConfig = next;
-      state.gym = null;
-      renderGym();
-      break;
-    }
-    case "gymReview": {
-      const q = state.gym.question;
-      if (q.calendar) {
-        toast(q.explanation);
-        break;
-      }
-      state.returnGym = true;
-      cancelGym();
-      solveInput(q.expression);
-      const first = state.solver.steps.findIndex((s) => s.kind === "operation");
-      if (first > 0) goStep(first);
-      break;
-    }
-    case "backGym":
-      state.returnGym = false;
-      nav("gym");
-      break;
-    case "reviewExpression":
-      if (/^\d{4}-\d{2}-\d{2}$/.test(el.dataset.expression)) {
-        toast(el.dataset.expression);
-        break;
-      }
-      state.returnGym = true;
-      solveInput(el.dataset.expression);
-      break;
-    case "export":
-      exportProgress();
-      if ($("#studio-dialog")?.dataset.kind === "import") showImportPreview();
-      break;
-    case "signOut":
-      signOut();
-      break;
-  }
-});
+function insertAtCursor(input, text) {
+  if (!input) return;
+  const a = input.selectionStart ?? input.value.length, b = input.selectionEnd ?? a;
+  input.value = input.value.slice(0, a) + text + input.value.slice(b);
+  input.setSelectionRange(a + text.length, a + text.length);
+  state.solverDraft = input.value;
+  input.focus();
+}
 document.addEventListener("submit", async (e) => {
   e.preventDefault();
   const form = e.target, fd = new FormData(form);
-  if (form.id === "assessment-form") checkAssessment(fd.get("answer"));
   if (form.id === "assessment-options") beginAssessment();
   if (form.id === "solver-form") solveInput(fd.get("expression"));
-  if (form.id === "answer-form") {
-    const v = fd.get("answer");
-    if (String(v).trim()) checkLesson(v);
-  }
   if (form.id === "gym-answer-form") checkGym(String(fd.get("answer")));
   if (form.id === "account-change-form") {
     const button = form.querySelector('[type="submit"]');
@@ -2223,7 +1249,6 @@ document.addEventListener("input", (e) => {
 });
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
-    stopAuto();
     const active = state.gym && ["playing", "answer"].includes(state.gym.status);
     cancelGym(active);
     if (active && state.view === "gym") renderGym();
@@ -2255,7 +1280,19 @@ configurePlayer({
     recordAttempt(state.progress, payload);
     saveProgress();
   },
+  S,
+  T,
   titleOf: L,
+  recordCheck: (payload) => {
+    recordAttempt(state.progress, payload);
+    saveProgress();
+  },
+  scoreCheck: (a) => scoreAssessment(a.responses, a),
+  onCheckAgain: (a) => {
+    closePlayer(true);
+    state.assessmentUnit = a.unit;
+    showUnitCheck(a.unit);
+  },
   ideaOf: (part) => part.idea?.[lang] || C(part.skill),
   statusOf: progressStatus,
   track: () => state.track,
@@ -2281,6 +1318,7 @@ configurePlayer({
 // test hooks (harmless in production): let automated tests open / close lessons directly
 globalThis.__openLesson = (id) => openLesson(id);
 globalThis.__closeLesson = () => closePlayer(true);
+globalThis.__solve = (expr) => solve(expr).result;
 render();
 queueMicrotask(() => {
   if (!prefs.setupSeen) showSetup();

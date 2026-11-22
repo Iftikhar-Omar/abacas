@@ -1,7 +1,10 @@
+// File: assessment.js
+// Directory: src/
+// Unit-check (test) generator and scoring.
+
 import { evaluate, solve } from './engine.js';
 import { lessons } from './curriculum.js';
 import { practiceFor } from './practice.js';
-import { config } from './config.js';
 
 export function handCompatible(expression) {
   try {

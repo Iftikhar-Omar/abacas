@@ -1,6 +1,9 @@
+// File: curriculum.js
+// Directory: src/
+// Lesson catalogue, units and progress tracking helpers.
+
 import { advancedLessons } from './advanced-lessons.js';
 import { createNormalLessons } from './journeys.js';
-import { config } from './config.js';
 
 export var units = [
   ["First discoveries", "\u099A\u09B2\u09CB \u09B6\u09C1\u09B0\u09C1 \u0995\u09B0\u09BF", "01", "zero"],

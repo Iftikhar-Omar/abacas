@@ -1,3 +1,7 @@
+// File: advanced-lessons.js
+// Directory: src/
+// Extra advanced lesson definitions.
+
 export var advancedLessons = [
   [
     "times-zero",

@@ -753,3 +753,7 @@ html[data-theme="dark"] .lp-btn.primary {
 .lp-actions .lp-btn.ghost:only-child {
   flex: 1;
 }
+
+.lp-progress.solo {
+  visibility: hidden;
+}

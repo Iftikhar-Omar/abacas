@@ -1,4 +1,6 @@
-import { parse } from './engine.js';
+// File: studio.js
+// Directory: src/
+// Preferences (defaults and sanitising) and finger/mask helpers.
 
 export function sanitizePrefs(p = {}) {
   const r = { ...defaults };

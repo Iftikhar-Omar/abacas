@@ -29,7 +29,12 @@ export function columnName(place, lang) {
 const bottom = (n, lang) => P(n === 1 ? "bottomBead_one" : "bottomBead_other", lang, { n });
 
 /** Format a number in the same style used across the app (× and −). */
-export const pretty = (s) => String(s).replaceAll("*", times).replaceAll("/", "÷").replaceAll("-", minus);
+let fractionStyle = false;
+/** Fraction lessons show 1/4 as a fraction; everywhere else "/" is a division sign. */
+export const setFractionStyle = (on) => {
+  fractionStyle = !!on;
+};
+export const pretty = (s) => String(s).replaceAll("*", times).replaceAll("/", fractionStyle ? "/" : "\u00F7").replaceAll("-", minus);
 
 /**
  * Build the scenes for a solved trace.
@@ -236,9 +241,10 @@ export function buildScenes(trace, lang, layout) {
       continue;
     }
 
-    // ---- everything the abacus can't show (fractions, signs, equations...) uses the engine's wording ----
+    // ---- everything the abacus can't show (fractions, signs, equations...) ----
     const info = stepText(s, lang);
-    scenes.push(mk(i, i, { type: "math", title: info.text, body: "", math: pretty(info.math || ""), group: s.group, tone: group?.tone }));
+    const friendly = lang === "en" ? friendlyMath(s) : null;
+    scenes.push(mk(i, i, { type: "math", title: friendly?.title || info.text, body: friendly?.body || "", math: pretty(info.math || ""), group: s.group, tone: group?.tone }));
     i++;
   }
   // un-nest borrow2 that was skipped by a nested little-friend: clear any pending state
@@ -252,4 +258,65 @@ export function taskScenes(scenes) {
   const hasOperation = scenes.some((s) => s.type === "operation");
   // examples that are just a number ("show 12") are practised by building the number itself
   return scenes.filter((s) => s.changes && (hasOperation ? !["set", "clear"].includes(s.type) : s.type === "set"));
+}
+
+/** Plain-English wording for the steps that happen "on paper" rather than on the abacus. */
+function friendlyMath(s) {
+  const p = s.params || {};
+  const pl = (n, one, many) => (Number(n) === 1 ? one : many);
+  switch (s.kind) {
+    case "multiplyPlan":
+      return { title: `Multiply ${p.a} ${times} ${p.b}`, body: `Think of ${p.b} equal groups of ${p.a}. We build the answer in small pieces.` };
+    case "partialProduct":
+      return { title: `Multiply ${p.a} ${times} ${p.factor}`, body: `This piece of the answer is ${p.part}. Keep it, then add the pieces together.` };
+    case "dividePlan":
+      return { title: `Divide ${p.a} by ${p.b}`, body: `We will share ${p.a} into groups of ${p.b}, one digit at a time.` };
+    case "divideDigit":
+      return { title: `Look at ${p.total}`, body: `How many times does ${p.divisor} fit into ${p.total}? ${p.digit} ${pl(p.digit, "time", "times")}, which uses ${p.used}. ${p.remain} is left over.` };
+    case "divideCheck":
+      return { title: "Check by multiplying", body: `${p.result} ${times} ${p.b} = ${p.a}, so the answer is right.` };
+    case "negate":
+      return { title: `Make it negative`, body: `Put a minus sign in front: ${minus}${p.a}. A number below zero.` };
+    case "exact":
+    case "signedOrFraction":
+      return { title: `The answer is ${pretty(p.value ?? p.result)}`, body: "Read the answer from the last line." };
+    case "fractionProduct":
+      return { title: "Tops times tops, bottoms times bottoms", body: `(${p.left} ${times} ${p.right}) over (${p.leftDen} ${times} ${p.rightDen}) gives ${p.result}.` };
+    case "remainder":
+      return { title: "Whole groups and a leftover", body: `${p.a} = ${p.divisor} ${times} ${p.quotient} + ${p.remainder}. So ${p.quotient} whole groups, with ${p.remainder} left over.` };
+    case "reciprocal":
+      return { title: "Dividing by a fraction? Flip it and multiply", body: `Dividing by ${p.b} is the same as multiplying by ${p.inverse}.` };
+    case "divisionScale":
+      return { title: "Make the divisor a whole number", body: `Multiply both numbers by ${p.factor}. The answer stays the same, and it is easier: ${p.left} \u00F7 ${p.right}.` };
+    case "commonParts":
+      return { title: "Use equal-sized parts", body: "Fractions can only be added or subtracted when their bottom numbers match." };
+    case "combineParts":
+      return { title: "Combine the parts", body: `${p.left} ${pretty(p.op)} ${p.right} parts out of ${p.den} gives ${p.result}.` };
+    case "signRule":
+      return { title: "Check the signs first", body: "Same signs give a positive answer. Different signs give a negative answer." };
+    case "multiplyExact":
+      return { title: `The product is ${p.result}`, body: "Now the sign is decided, multiply the numbers." };
+    case "power":
+      return { title: "Repeated multiplication", body: `${p.a} ${times} ${p.a} = ${p.result}.` };
+    case "rootCheck":
+      return { title: "Check the root", body: `${p.result} ${times} ${p.result} = ${p.a}, so the square root is ${p.result}.` };
+    case "balance":
+      return { title: "Both sides must stay balanced", body: "Whatever we do to one side of the equals sign, we do to the other." };
+    case "collect":
+      return { title: "Gather the x terms", body: `Move the plain numbers away so ${p.coefficient} ${times} x = ${p.constant}.` };
+    case "solveX":
+      return { title: "Find x", body: `Divide both sides by ${p.coefficient}: x = ${p.result}.` };
+    case "verifyX":
+      return { title: "Check your answer", body: `Put x = ${p.result} back into the equation: both sides are ${p.left}.` };
+    case "rootBring":
+      return { title: "Bring down the next pair of digits", body: "We find a square root one pair of digits at a time." };
+    case "rootTrial":
+      return { title: "Try a digit", body: "Pick the biggest digit that still fits without going over." };
+    case "rootDigit":
+      return { title: "Keep that digit", body: "Write it in the answer and subtract what we used." };
+    case "roundRoot":
+      return { title: "Round the answer", body: "Use one extra digit to round to the places we want." };
+    default:
+      return null;
+  }
 }

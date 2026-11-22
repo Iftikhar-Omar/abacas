@@ -215,3 +215,26 @@
 .fg-digit {
   font-size: 22px;
 }
+
+/* ---------- board palettes (Settings > Board colours) ---------- */
+html[data-surface="wood"] {
+  --sb-frame: #6f4228;
+  --sb-low: #b0703f;
+  --sb-low-hi: #e3ad7d;
+  --sb-inner: #fbf1e3;
+}
+html[data-surface="cyber"] {
+  --sb-frame: #17354b;
+  --sb-low: #0e9b9b;
+  --sb-low-hi: #71dcd2;
+  --sb-inner: #eafafa;
+}
+html[data-surface="orchid"] {
+  --sb-frame: #4d3466;
+  --sb-low: #8a52c8;
+  --sb-low-hi: #c39cf1;
+  --sb-inner: #f5eefc;
+}
+html[data-theme="dark"][data-surface] {
+  --sb-inner: #202e48;
+}

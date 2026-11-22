@@ -1,3 +1,7 @@
+// File: engine.js
+// Directory: src/
+// Exact arithmetic parser and step-by-step abacus move generator.
+
 export var ENGINE_VERSION = "4.0.0";
 export var abs = (n) => n < 0n ? -n : n;
 export var gcd = (a, b) => {

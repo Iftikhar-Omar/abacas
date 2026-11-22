@@ -1,6 +1,6 @@
-import { solve } from './engine.js';
-import { allLessons } from './curriculum.js';
-import { sequence } from './model.js';
+// File: i18n.js
+// Directory: src/
+// UI translations for six languages, with the language list.
 
 export var languages = [
   ["en", "English", "en-US"],

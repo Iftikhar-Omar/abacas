@@ -1,3 +1,7 @@
+// File: journeys.js
+// Directory: src/
+// Builds the 15-lesson starter path from the catalogue.
+
 import { normalTitles } from './journey-i18n.js';
 
 export function createNormalLessons(catalog, ideaFor) {

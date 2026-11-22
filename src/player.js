@@ -11,7 +11,7 @@
 // The player owns its own DOM (an overlay appended to <body>) and its own session state, so the
 // app's full re-renders never wipe it. app.js talks to it through configurePlayer() + openLesson().
 
-import { buildScenes, pretty, taskScenes } from "./coach.js";
+import { buildScenes, pretty, setFractionStyle, taskScenes } from "./coach.js";
 import { explainerFor, explainerById } from "./explainers.js";
 import { P } from "./player-i18n.js";
 import { FingerBoard } from "./fingers.js";
@@ -92,6 +92,7 @@ export function openLesson(lesson, { startStage = 0 } = {}) {
     started: Date.now(),
     stack: [],
   };
+  setFractionStyle(lesson.skill === "fractions" || (lesson.parts || []).some((p) => p.skill === "fractions"));
   S.parts = (lesson.parts || [lesson]).map(preparePart);
   S.plan = buildPlan(lesson);
   mount();
@@ -104,6 +105,33 @@ export function openExplainer(id) {
   if (!ex) return;
   closePlayer(true);
   S = { lesson: null, explainer: ex, parts: [], plan: [{ type: "learn", part: 0, standalone: true }], stage: 0, scene: 0, auto: false, timers: new Set(), board: null, seen: new Set(), stack: [], started: Date.now() };
+  mount();
+  enterStage();
+}
+
+/** Step-by-step solution of any calculation (used by the Solve page, practice review and unit checks). */
+export function openSolution(expr, { at = 0 } = {}) {
+  let trace;
+  try {
+    trace = env.solve(expr);
+  } catch {
+    return false;
+  }
+  closePlayer(true);
+  setFractionStyle((String(expr).match(/\//g) || []).length >= 2);
+  S = { lesson: null, explainer: { title: pretty(trace.source) }, solution: trace, at, parts: [], plan: [{ type: "solve" }], stage: 0, scene: 0, auto: false, timers: new Set(), board: null, seen: new Set(), stack: [], started: Date.now() };
+  mount();
+  enterStage();
+  return true;
+}
+
+/** Unit check (a short, one-attempt-per-question test). `a` comes from assessment.createAssessment(). */
+export function openCheck(a) {
+  closePlayer(true);
+  const title = env.T("assessment");
+  S = { lesson: null, explainer: { title: `${title} \u00B7 ${a.unitName}` }, check: a, parts: [], plan: [{ type: "check" }], stage: 0, scene: 0, auto: false, timers: new Set(), board: null, seen: new Set(), stack: [], started: Date.now() };
+  a.index = 0;
+  a.responses = a.responses || [];
   mount();
   enterStage();
 }
@@ -163,15 +191,16 @@ const stageLabel = (st) => t(`stage_${st.type}`);
 
 function chrome() {
   const l = S.lesson;
-  const title = S.explainer ? S.explainer.title : env.titleOf(l);
+  const title = S.explainer ? S.explainer.title : l ? env.titleOf(l) : "";
   const st = S.plan[S.stage];
   const parts = (l?.parts || []).length;
-  const sub = st.nested || st.standalone ? t("helpfulIdea") : st.type === "done" ? t("stage_done") : parts > 1 && st.part !== undefined && st.type !== "practice" ? `${t("part")} ${st.part + 1}/${parts} · ${stageLabel(st)}` : stageLabel(st);
+  const sub = st.type === "check" ? stageLabel({ type: "practice" }) : st.type === "solve" ? t("stage_solve") : st.nested || st.standalone ? t("helpfulIdea") : st.type === "done" ? t("stage_done") : parts > 1 && st.part !== undefined && st.type !== "practice" ? `${t("part")} ${st.part + 1}/${parts} · ${stageLabel(st)}` : stageLabel(st);
   const segs = S.plan.filter((x) => x.type !== "done");
+  const solo = segs.length <= 1;
   const cur = Math.min(S.stage, segs.length);
   root.setAttribute("aria-label", title);
   return `<header class="lp-top"><button class="lp-x" data-lp="exit" aria-label="${esc(t("exit"))}" title="${esc(t("exit"))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
-  <div class="lp-progress" role="progressbar" aria-label="${esc(t("progress"))}" aria-valuemin="0" aria-valuemax="${segs.length}" aria-valuenow="${cur}">${segs.map((x, i) => `<i class="${i < cur ? "done" : i === cur ? "cur" : ""} ${x.type}"></i>`).join("")}</div>
+  <div class="lp-progress${solo ? " solo" : ""}" role="progressbar" aria-label="${esc(t("progress"))}" aria-valuemin="0" aria-valuemax="${segs.length}" aria-valuenow="${cur}">${segs.map((x, i) => `<i class="${i < cur ? "done" : i === cur ? "cur" : ""} ${x.type}"></i>`).join("")}</div>
   <div class="lp-title"><b>${esc(title)}</b><small>${esc(sub)}</small></div>
   <button class="lp-x lp-speak" data-lp="speak" aria-label="${esc(t("readAloud"))}" title="${esc(t("readAloud"))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z M17 8q6 4 0 8"/></svg></button></header>`;
 }
@@ -218,7 +247,7 @@ function enterStage(keepScene = false) {
   const st = S.plan[S.stage];
   if (!keepScene) S.scene = 0;
   if (st.type !== "try") S.try = null;
-  ({ learn: stageLearn, watch: stageWatch, try: stageTry, practice: stagePractice, done: stageDone })[st.type](st);
+  ({ learn: stageLearn, watch: stageWatch, try: stageTry, practice: stagePractice, done: stageDone, solve: stageSolve, check: stageCheck })[st.type](st);
   root.querySelector("[data-primary]")?.focus({ preventScroll: true });
 }
 
@@ -307,6 +336,79 @@ function setAuto(on) {
   }
   if (on) autoTick();
   else clearTimers();
+}
+
+/* ------------------------------------------------------------------ Solve (any calculation) */
+
+function stageSolve() {
+  const trace = S.solution;
+  const layout = layoutFor(trace.steps.flatMap((x) => [x.before, x.after]));
+  const boardable = trace.steps.some((x) => x.after.raw !== null && x.after.raw !== undefined) && !trace.steps.some((x) => String(x.after.raw ?? "").startsWith("-"));
+  const scenes = buildScenes(trace, lang(), layout);
+  // jump to the scene that contains engine step `at`
+  const idx = scenes.findIndex((sc) => sc.first <= S.at && sc.last >= S.at);
+  S.scene = idx > 0 ? idx : 0;
+  sceneViewer({ scenes, trace, layout, boardable, tag: "solution", finishLabel: t("done"), onFinish: () => closePlayer() });
+}
+
+/* ------------------------------------------------------------------ Unit check */
+
+const unitLabel = (a) => `${a.index + 1} / ${a.items.length}`;
+
+function stageCheck() {
+  const a = S.check;
+  if (a.index >= a.items.length) return checkResults();
+  const item = a.items[a.index];
+  const trace = env.solve(item.expression);
+  const layout = layoutFor(trace.steps.flatMap((x) => [x.before, x.after]));
+  const hands = a.source === "hands";
+  if (hands) Object.assign(layout, { rods: 2, scale: 0, fingers: true });
+  const boardable = trace.steps.some((x) => x.after.raw !== null && x.after.raw !== undefined) && !trace.steps.some((x) => String(x.after.raw ?? "").startsWith("-"));
+  const op = trace.steps.find((x) => x.kind === "operation");
+  const mental = a.source === "mental";
+  a.cur = { item, trace, layout, boardable, start: op?.before || { raw: "0", scale: 0, value: "0" }, at: performance.now(), hinted: false, done: false };
+  const hidden = mental;
+  shell(`${boardPanel({ trace: null, boardable, hide: !boardable, tools: boardable ? `<div class="lp-tools"><button class="lp-chip" data-lp="clearBoard">${icon("reset")}<span>${esc(t("clearBoard"))}</span></button></div>` : "" })}<section class="lp-coach" id="lp-coach"><div class="lp-count" aria-hidden="true">${a.items.map((_, k) => `<i class="${k < a.index ? "done" : k === a.index ? "cur" : ""}"></i>`).join("")}</div><div class="lp-speech">${avatar("think")}<div class="lp-bubble"><div class="lp-bubble-top"><span class="lp-kicker">${esc(a.timed ? env.S("timedCheck") : env.T("untimed"))}</span><span class="lp-step" id="lp-clock">${unitLabel(a)}</span></div><div class="lp-question" dir="ltr">${esc(pretty(item.expression))}</div><p>${esc(env.S("checkIndependent"))}</p></div></div><form class="lp-answer" id="lp-form" autocomplete="off"><label class="sr-only" for="lp-answer">${esc(t("answer"))}</label><input id="lp-answer" name="a" inputmode="text" placeholder="${esc(t("answer"))}" maxlength="80" dir="ltr" autocapitalize="off" spellcheck="false"><button class="lp-btn primary" type="submit">${esc(t("check"))}</button></form><div class="lp-feedback" id="lp-fb" role="status"></div><div class="lp-actions row">${hidden ? `<button class="lp-btn ghost small" data-lp="peek">${esc(env.S("revealModel"))}</button>` : ""}</div></section>`);
+  if (boardable) {
+    makeBoard(layout, true, ({ digits }) => setTotal(S.board.valueOf(digits))).set(a.cur.start);
+    setTotal(a.cur.start.value);
+    if (hidden) root.querySelector(".lp-stage").classList.add("covered");
+  }
+  if (a.timed) {
+    const tick = () => {
+      const ms = a.responses.reduce((n, r) => n + r.ms, 0) + (a.cur.done ? 0 : performance.now() - a.cur.at);
+      const el = root.querySelector("#lp-clock");
+      if (el) el.textContent = `${unitLabel(a)} \u00B7 ${Math.floor(ms / 6e4)}:${String(Math.floor(ms / 1e3) % 60).padStart(2, "0")} / 10:00`;
+    };
+    tick();
+    const loop = setInterval(() => (root && S?.check === a ? tick() : clearInterval(loop)), 1000);
+  }
+  root.querySelector("#lp-answer").focus({ preventScroll: true });
+}
+
+function submitCheck(value) {
+  const a = S.check;
+  const c = a.cur;
+  if (c.done || !String(value).trim()) return;
+  c.done = true;
+  const ok = env.answerEquals(value, c.item.expected);
+  const response = { correct: ok, hinted: c.hinted, ms: performance.now() - c.at, source: a.source };
+  a.responses.push(response);
+  env.recordCheck({ ...response, lessonId: undefined, mode: "assessment", expression: c.item.expression, answer: String(value), expected: c.item.expected, config: { unit: a.unit, source: a.source, assessmentId: a.id, itemIndex: a.index, timed: a.timed, assessmentLesson: c.item.lessonId } });
+  const fb = root.querySelector("#lp-fb");
+  fb.className = `lp-feedback ${ok ? "ok" : "no"}`;
+  fb.innerHTML = ok ? `<b>${esc(t("nice"))}</b>` : `<b>${esc(env.T("practicing"))}</b> <span dir="ltr">${esc(pretty(c.item.expected))}</span>`;
+  root.querySelector("#lp-form").hidden = true;
+  const last = a.index >= a.items.length - 1;
+  root.querySelector(".lp-actions").classList.remove("row");
+  root.querySelector(".lp-actions").innerHTML = `<button class="lp-btn primary" data-lp="checkNext" data-primary>${esc(last ? t("finish") : t("nextQuestion"))}</button>`;
+  root.querySelector("[data-primary]").focus({ preventScroll: true });
+}
+
+function checkResults() {
+  const a = S.check;
+  const r = env.scoreCheck(a);
+  shell(`<section class="lp-stage no-board done"><div class="lp-trophy" aria-hidden="true">${confetti()}</div></section><section class="lp-coach"><div class="lp-speech">${avatar(r.passed ? "cheer" : "happy")}<div class="lp-bubble"><h2>${esc(r.passed ? env.S("accuracyReady") : env.S("notYet"))}</h2><p>${esc(a.timed ? (r.pace ? env.S("paceReady") : env.S("notYet")) : env.S("checkNote"))}</p><div class="lp-math" dir="ltr">${Math.round(r.accuracy * 100)}% \u00B7 ${(r.ms / 1e3).toFixed(1)}s</div></div></div><div class="lp-actions col"><button class="lp-btn primary" data-lp="exit" data-primary>${esc(t("backToPath"))}</button><button class="lp-btn ghost" data-lp="checkAgain">${esc(env.S("checkAgain"))}</button></div></section>`);
 }
 
 /* ------------------------------------------------------------------ Learn */
@@ -660,7 +762,8 @@ function onClick(e) {
     case "hint":
       return showHint();
     case "peek":
-      S.q.revealed = true;
+      if (S.check) S.check.cur.hinted = true;
+      else S.q.revealed = true;
       root.querySelector(".lp-stage")?.classList.remove("covered");
       b.remove();
       return;
@@ -676,6 +779,11 @@ function onClick(e) {
       S.q = { pool: [], used: new Set(), asked: 0, streak: 0, right: S.q?.right || 0, wrong: S.q?.wrong || 0, log: [] };
       S.stage = S.plan.findIndex((x) => x.type === "practice");
       return enterStage();
+    case "checkNext":
+      S.check.index++;
+      return stageCheck();
+    case "checkAgain":
+      return env.onCheckAgain?.(S.check);
     case "gonext":
       return env.onNext?.(S.lesson);
   }
@@ -683,7 +791,11 @@ function onClick(e) {
 
 function onSubmit(e) {
   e.preventDefault();
-  if (e.target.id === "lp-form") checkAnswer(new FormData(e.target).get("a"));
+  if (e.target.id === "lp-form") {
+    const v = new FormData(e.target).get("a");
+    if (S.check) submitCheck(v);
+    else checkAnswer(v);
+  }
 }
 
 function onKey(e) {
@@ -697,7 +809,7 @@ function onKey(e) {
   if (e.target.closest("input,select,textarea")) return;
   const v = S.view;
   const st = S.plan[S.stage];
-  if (v && (st.type === "watch" || st.type === "learn" || st.type === "solution" || S.view?.tag === "solution")) {
+  if (v && (st.type === "watch" || st.type === "learn" || st.type === "solve" || S.view?.tag === "solution")) {
     if (e.key === "ArrowRight" || e.key === " " || e.key === "Enter") {
       if (e.target.closest("button") && e.key !== "ArrowRight") return;
       e.preventDefault();

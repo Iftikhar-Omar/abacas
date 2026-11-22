@@ -8,9 +8,9 @@ const { chromium } = createRequire(import.meta.url)('playwright');
 
 export const BASE = process.env.BASE || 'http://localhost:5173/';
 
-export async function launch({ width = 1280, height = 800, lang } = {}) {
+export async function launch({ width = 1280, height = 800, lang, reduced = false } = {}) {
   const browser = await chromium.launch();
-  const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1 });
+  const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1, reducedMotion: reduced ? 'reduce' : 'no-preference' });
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
@@ -45,23 +45,29 @@ export async function buildNumber(page, value) {
   }
 }
 
-export const evalExpr = (t) => {
+// Independent check: plain arithmetic is evaluated by JavaScript and compared with the app's own engine.
+export const jsEval = (t) => {
   const s = t.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-').replace(/\^/g, '**').replace(/sqrt/g, 'Math.sqrt');
-  // eslint-disable-next-line no-new-func
-  return Function(`"use strict";return (${s})`)();
+  try {
+    // eslint-disable-next-line no-new-func
+    const v = Function(`"use strict";return (${s})`)();
+    return typeof v === 'number' && Number.isFinite(v) ? +v.toFixed(6) : null;
+  } catch { return null; }
 };
 
 /** Play through the whole lesson. mode: 'good' answers right. Returns a log. */
-export async function playLesson(page, { maxSteps = 400 } = {}) {
+export async function playLesson(page, { maxSteps = 400, timeoutMs = 45000 } = {}) {
   const log = [];
+  const t0 = Date.now();
   for (let i = 0; i < maxSteps; i++) {
+    if (Date.now() - t0 > timeoutMs) { log.push('TIMEOUT'); break; }
     const st = await stage(page);
     if (!(await page.$('#lp'))) { log.push('closed'); break; }
     if (st === 'Done') { log.push('done'); break; }
     if (st === 'Practice') { await practiceRound(page, log); continue; }
     if (/Try$/.test(st)) {
       const skip = await page.$('[data-lp=skipTask]');
-      if (skip) { await skip.click(); await page.waitForTimeout(1250); continue; }
+      if (skip) { await skip.click(); await page.waitForTimeout(450); continue; }
       const nx = await page.$('[data-primary]'); if (nx) { await nx.click(); continue; }
       await page.waitForTimeout(200); continue;
     }
@@ -81,7 +87,12 @@ async function practiceRound(page, log) {
   else {
     let expected;
     if (/^What number/.test(q)) expected = await page.evaluate(() => document.querySelector('#lp-total')?.textContent);
-    else expected = String(evalExpr(q));
+    else {
+      const app = await page.evaluate((e) => window.__solve(e.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-')), q);
+      const js = jsEval(q);
+      if (js !== null && !/[a-z=]/i.test(q) && !String(app).includes('/') && Math.abs(js - parseFloat(app)) > 1e-6 && !/remainder|r/i.test(String(app))) log.push(`ENGINE MISMATCH ${q}: js=${js} app=${app}`);
+      expected = String(app);
+    }
     await page.fill('#lp-answer', expected);
     await page.keyboard.press('Enter');
     await page.waitForTimeout(150);

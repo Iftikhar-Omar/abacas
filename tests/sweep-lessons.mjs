@@ -6,7 +6,7 @@ import { launch, playLesson, stage } from './lib.mjs';
 import { allLessons } from '../src/curriculum.js';
 
 const only = process.argv[2];
-const { browser, page, errors } = await launch();
+const { browser, page, errors } = await launch({ reduced: true });
 let bad = 0;
 for (const l of allLessons) {
   if (only && !l.id.includes(only)) continue;

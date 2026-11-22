@@ -1,3 +1,7 @@
+// File: practice.js
+// Directory: src/
+// Practice question generator, seeded from lesson definitions.
+
 import { lessons } from './curriculum.js';
 import { solve } from './engine.js';
 

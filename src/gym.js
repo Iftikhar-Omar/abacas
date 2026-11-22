@@ -1,5 +1,8 @@
+// File: gym.js
+// Directory: src/
+// Mental-maths practice session presets, challenge generator and playback.
+
 import { Q, rootApproximation } from './engine.js';
-import { config } from './config.js';
 
 export function randomInt(min, max, rng = Math.random) {
   return Math.floor(rng() * (max - min + 1)) + min;

@@ -1,3 +1,7 @@
+// File: ui.js
+// Directory: src/
+// Focus and form-draft capture/restore helpers.
+
 export function captureFocus(element = document.activeElement) {
   return element ? {
     element,
