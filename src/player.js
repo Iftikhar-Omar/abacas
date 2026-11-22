@@ -11,7 +11,9 @@
 // The player owns its own DOM (an overlay appended to <body>) and its own session state, so the
 // app's full re-renders never wipe it. app.js talks to it through configurePlayer() + openLesson().
 
-import { buildScenes, pretty, setFractionStyle, taskScenes } from "./coach.js";
+import { buildScenes, isBoardable, isFractionStyle, pretty, setFractionStyle, taskScenes } from "./coach.js";
+import { fractionBarsHTML } from "./fractions.js";
+import { solutionScenes } from "./solutions.js";
 import { explainerFor, explainerById } from "./explainers.js";
 import { P } from "./player-i18n.js";
 import { FingerBoard } from "./fingers.js";
@@ -36,15 +38,19 @@ const eq = (a, b) => !!a && !!b && a.length === b.length && a.every((x, i) => x 
 
 function preparePart(part) {
   const trace = env.solve(part.example);
-  const snaps = trace.steps.flatMap((s) => [s.before, s.after]);
-  const layout = layoutFor(snaps);
+  const sol = solutionScenes(part.example, lang(), { simplify: part.skill === "fractions" });
+  const layout = { ...sol.layout };
   // the "fingers" idea is practised on two hands (tens + ones), values 0-99
   if (part.id === "hands") Object.assign(layout, { rods: 2, scale: 0, fingers: true });
-  const boardable = trace.steps.some((s) => s.after.raw !== null && s.after.raw !== undefined) && !trace.steps.some((s) => String(s.after.raw ?? "").startsWith("-"));
-  const scenes = buildScenes(trace, lang(), layout);
+  const scenes = sol.scenes;
   if (layout.fingers) handsWording(scenes, layout);
-  return { part, trace, layout, boardable, scenes, tasks: boardable ? taskScenes(scenes) : [] };
+  const boardable = sol.boardable;
+  return { part, trace, chips: sol.plain && !sol.trace ? null : sol.trace || chipsFor(part.example), layout, boardable, scenes, tasks: boardable ? taskScenes(scenes) : [], plain: sol.plain };
 }
+
+/** A one-chip "equation" strip for explanations that are not a single engine trace. */
+const chipsFor = (expr) => ({ source: String(expr), groups: [{ label: String(expr), tone: "neutral" }] });
+
 
 /** Same scenes, but spoken about hands instead of beads. */
 function handsWording(scenes, layout) {
@@ -128,7 +134,7 @@ export function openSolution(expr, { at = 0 } = {}) {
   }
   closePlayer(true);
   setFractionStyle((String(expr).match(/\//g) || []).length >= 2);
-  S = { lesson: null, explainer: { title: pretty(trace.source) }, solution: trace, at, parts: [], plan: [{ type: "solve" }], stage: 0, scene: 0, auto: false, timers: new Set(), board: null, seen: new Set(), stack: [], started: Date.now() };
+  S = { lesson: null, explainer: { title: pretty(trace.source) }, solution: trace, solutionExpr: expr, at, parts: [], plan: [{ type: "solve" }], stage: 0, scene: 0, auto: false, timers: new Set(), board: null, seen: new Set(), stack: [], started: Date.now() };
   mount();
   enterStage();
   return true;
@@ -228,7 +234,7 @@ function shell(inner) {
 
 const equationChips = (trace, activeGroup) =>
   trace
-    ? `<div class="lp-eq" dir="ltr" aria-label="${esc(pretty(trace.source))}">${trace.groups.map((g, i) => `<span class="${i === activeGroup ? "on" : ""} ${g.tone}">${esc(pretty(g.label))}</span>`).join("")}</div>`
+    ? `<div class="lp-eq" dir="ltr" aria-label="${esc(pretty(trace.source))}">${trace.groups.length > 4 ? `<span class="on">${esc(pretty(trace.source))}</span>` : trace.groups.map((g, i) => `<span class="${i === activeGroup ? "on" : ""} ${g.tone}">${esc(pretty(g.label))}</span>`).join("")}</div>`
     : "";
 
 function boardPanel({ trace, group, boardable, hide, tools = "" }) {
@@ -319,7 +325,7 @@ function showScene(i) {
   const pad = root.querySelector("#lp-mathpad");
   if (pad) {
     const lines = v.scenes.slice(0, v.i + 1).filter((x) => x.math).slice(-5);
-    pad.innerHTML = lines.map((x, k) => `<div class="${k === lines.length - 1 ? "now" : ""}" dir="ltr">${esc(x.math)}</div>`).join("") || `<div class="now" dir="ltr">${esc(pretty(v.trace?.source || ""))}</div>`;
+    pad.innerHTML = sc.fractions ? `${fractionBarsHTML(sc.fractions)}<div class="now" dir="ltr">${esc(sc.math)}</div>` : lines.map((x, k) => `<div class="${k === lines.length - 1 ? "now" : ""}" dir="ltr">${esc(x.math)}</div>`).join("") || `<div class="now" dir="ltr">${esc(pretty(v.trace?.source || ""))}</div>`;
   }
   if (v.auto) autoTick();
 }
@@ -352,14 +358,11 @@ function setAuto(on) {
 /* ------------------------------------------------------------------ Solve (any calculation) */
 
 function stageSolve() {
-  const trace = S.solution;
-  const layout = layoutFor(trace.steps.flatMap((x) => [x.before, x.after]));
-  const boardable = trace.steps.some((x) => x.after.raw !== null && x.after.raw !== undefined) && !trace.steps.some((x) => String(x.after.raw ?? "").startsWith("-"));
-  const scenes = buildScenes(trace, lang(), layout);
-  // jump to the scene that contains engine step `at`
-  const idx = scenes.findIndex((sc) => sc.first <= S.at && sc.last >= S.at);
+  const sol = solutionScenes(S.solutionExpr, lang());
+  // jump to the scene that contains engine step `at` (only meaningful for plain bead flows)
+  const idx = sol.trace ? sol.scenes.findIndex((sc) => sc.first <= S.at && sc.last >= S.at) : 0;
   S.scene = idx > 0 ? idx : 0;
-  sceneViewer({ scenes, trace, layout, boardable, tag: "solution", finishLabel: t("done"), onFinish: () => closePlayer() });
+  sceneViewer({ scenes: sol.scenes, trace: sol.trace || (sol.plain ? null : chipsFor(S.solutionExpr)), layout: sol.layout, boardable: sol.boardable, tag: "solution", finishLabel: t("done"), onFinish: () => closePlayer() });
 }
 
 /* ------------------------------------------------------------------ Script (child-first lessons) */
@@ -388,6 +391,10 @@ function drawScriptStep() {
   makeBoard(layout, isDo, isDo ? onScriptChange : null);
   S.board.set(start);
   setTotal(S.board.valueOf(start));
+  if (st.kind === "ask") {
+    S.board.hideDigits(true);
+    setTotal("?");
+  }
   if (isDo) {
     if (st.hintMove) S.board.hintMove(start, st.target);
     else if (st.hint) S.board.highlight(st.hint);
@@ -415,6 +422,8 @@ function scriptSuccess(digits) {
   sc.done = true;
   S.cur = digits.slice();
   const { st, key } = sc;
+  S.board.hideDigits(false);
+  setTotal(S.board.valueOf(digits));
   const fb = root.querySelector("#lp-fb");
   S.board.clearHints();
   S.board.flash("ok");
@@ -443,6 +452,14 @@ function onScriptChange({ digits }) {
   }
   if (eq(digits, st.target)) return scriptSuccess(digits);
   const fb = root.querySelector("#lp-fb");
+  if (st.loose) {
+    // multi-tap step: any in-between state is fine, just keep the hint pointing at what is left
+    fb.className = "lp-feedback hint";
+    const hn = t(`${sc.key}_nudge`);
+    fb.innerHTML = `<b>${esc(t("keepGoing2"))}</b> ${esc(hn === `${sc.key}_nudge` ? "" : hn)}`;
+    S.board.hintMove(digits, st.target);
+    return;
+  }
   if (eq(digits, sc.start)) {
     fb.className = "lp-feedback";
     fb.textContent = "";
@@ -585,7 +602,7 @@ function stageWatch(st) {
   const p = S.parts[st.part];
   sceneViewer({
     scenes: p.scenes,
-    trace: p.trace,
+    trace: p.chips,
     layout: p.layout,
     boardable: p.boardable,
     tag: "watch",
@@ -599,7 +616,7 @@ function stageWatch(st) {
 function stageTry(st) {
   const p = S.parts[st.part];
   S.try = { p, k: 0, undo: [], wrong: 0, done: false };
-  shell(`${boardPanel({ trace: p.trace, group: p.tasks[0].group, boardable: true, tools: `<div class="lp-tools"><button class="lp-chip" data-lp="undo" id="lp-undo" disabled>${icon("undo")}<span>${esc(t("undo"))}</span></button><button class="lp-chip" data-lp="resetTask">${icon("reset")}<span>${esc(t("startOver"))}</span></button></div>` })}<section class="lp-coach" id="lp-coach"></section>`);
+  shell(`${boardPanel({ trace: p.chips, group: Math.min(p.tasks[0].group || 0, (p.chips?.groups.length || 1) - 1), boardable: true, tools: `<div class="lp-tools"><button class="lp-chip" data-lp="undo" id="lp-undo" disabled>${icon("undo")}<span>${esc(t("undo"))}</span></button><button class="lp-chip" data-lp="resetTask">${icon("reset")}<span>${esc(t("startOver"))}</span></button></div>` })}<section class="lp-coach" id="lp-coach"></section>`);
   makeBoard(p.layout, true, onTryChange);
   showTask();
 }
@@ -705,7 +722,7 @@ function newQuestion() {
   q.state = "ask"; // ask | right | show
   const snaps = q.trace.steps.flatMap((s) => [s.before, s.after]);
   q.layout = layoutFor(snaps);
-  q.boardable = q.trace.steps.some((s) => s.after.raw !== null && s.after.raw !== undefined) && !q.trace.steps.some((s) => String(s.after.raw ?? "").startsWith("-"));
+  q.boardable = isBoardable(q.trace) && !isFractionStyle();
   const op = q.trace.steps.find((s) => s.kind === "operation");
   q.startSnap = op?.before || { raw: "0", scale: 0, value: "0" };
   // a plain number means "show it" / "read it" rather than "work it out"
@@ -725,7 +742,7 @@ function drawQuestion() {
   const q = S.q;
   const hideBoard = q.mental && !q.revealed;
   const text = q.kind === "build" ? t("showOnBoard", { n: pretty(q.expr) }) : q.kind === "read" ? t("whatNumber") : pretty(q.expr);
-  shell(`${boardPanel({ trace: null, boardable: q.boardable, hide: !q.boardable, tools: q.boardable ? `<div class="lp-tools"><button class="lp-chip" data-lp="clearBoard">${icon("reset")}<span>${esc(t("clearBoard"))}</span></button></div>` : "" })}<section class="lp-coach" id="lp-coach"><div class="lp-streak" aria-label="${esc(t("inARow", { n: NEED }))}">${Array.from({ length: NEED }, (_, i) => `<i class="${i < q.streak ? "on" : ""}"></i>`).join("")}<small>${esc(t("inARow", { n: NEED }))}</small></div><div class="lp-speech">${avatar("think")}<div class="lp-bubble"><div class="lp-bubble-top"><span class="lp-kicker">${esc(t("question"))} ${q.asked + 1}</span></div><div class="lp-question" dir="ltr" aria-label="${esc(text)}">${esc(text)}</div><p>${esc(q.kind === "build" ? t("buildHint") : q.kind === "read" ? t("readHint") : hideBoard ? t("picture") : q.boardable ? t("practiceHint") : t("practiceHintNoBoard"))}</p></div></div><form class="lp-answer" id="lp-form" ${q.kind === "build" ? "hidden" : ""} autocomplete="off"><label class="sr-only" for="lp-answer">${esc(t("answer"))}</label><input id="lp-answer" name="a" inputmode="${/[\/x=\u2212-]/.test(q.expected + q.expr) ? "text" : "decimal"}" placeholder="${esc(t("answer"))}" maxlength="40" dir="ltr" autocapitalize="off" spellcheck="false" enterkeyhint="done"><button class="lp-btn primary" type="submit">${esc(t("check"))}</button></form><div class="lp-feedback" id="lp-fb" role="status"></div><div class="lp-actions row"><button class="lp-btn ghost small" data-lp="hint">${esc(t("hint"))}</button>${q.mental && !q.revealed ? `<button class="lp-btn ghost small" data-lp="peek">${esc(t("peek"))}</button>` : ""}</div></section>`);
+  shell(`${boardPanel({ trace: null, boardable: q.boardable, hide: !q.boardable, tools: q.boardable ? `<div class="lp-tools"><button class="lp-chip" data-lp="clearBoard">${icon("reset")}<span>${esc(t("clearBoard"))}</span></button></div>` : "" })}<section class="lp-coach" id="lp-coach"><div class="lp-streak" aria-label="${esc(t("inARow", { n: NEED }))}">${Array.from({ length: NEED }, (_, i) => `<i class="${i < q.streak ? "on" : ""}"></i>`).join("")}<small>${esc(t("inARow", { n: NEED }))}</small></div><div class="lp-speech">${avatar("think")}<div class="lp-bubble"><div class="lp-bubble-top"><span class="lp-kicker">${esc(t("question"))} ${q.asked + 1}</span></div><div class="lp-question" dir="ltr" aria-label="${esc(text)}"${q.kind === "read" ? ` data-read="${esc(q.expr)}"` : ""}>${esc(text)}</div><p>${esc(q.kind === "build" ? t("buildHint") : q.kind === "read" ? t("readHint") : hideBoard ? t("picture") : q.boardable ? t("practiceHint") : t("practiceHintNoBoard"))}</p></div></div><form class="lp-answer" id="lp-form" ${q.kind === "build" ? "hidden" : ""} autocomplete="off"><label class="sr-only" for="lp-answer">${esc(t("answer"))}</label><input id="lp-answer" name="a" inputmode="${/[\/x=\u2212-]/.test(q.expected + q.expr) ? "text" : "decimal"}" placeholder="${esc(t("answer"))}" maxlength="40" dir="ltr" autocapitalize="off" spellcheck="false" enterkeyhint="done"><button class="lp-btn primary" type="submit">${esc(t("check"))}</button></form><div class="lp-feedback" id="lp-fb" role="status"></div><div class="lp-actions row"><button class="lp-btn ghost small" data-lp="hint">${esc(t("hint"))}</button>${q.mental && !q.revealed ? `<button class="lp-btn ghost small" data-lp="peek">${esc(t("peek"))}</button>` : ""}</div></section>`);
   if (q.boardable) {
     const b = makeBoard(q.layout, q.kind !== "read", ({ digits }) => {
       setTotal(S.board.valueOf(digits));
@@ -733,6 +750,10 @@ function drawQuestion() {
     });
     b.set(q.startSnap);
     setTotal(q.startSnap.value);
+    if (q.kind === "read") {
+      b.hideDigits(true);
+      setTotal("?");
+    }
     if (hideBoard) {
       root.querySelector(".lp-stage").classList.add("covered");
     }
@@ -756,6 +777,10 @@ function afterAnswer(ok, value) {
   if (ok) {
     q.state = "right";
     sfx.ok();
+    if (q.kind === "read") {
+      S.board?.hideDigits(false);
+      setTotal(q.startSnap.value);
+    }
     if (!q.hinted && !q.revealed && q.tries === 1) q.streak++;
     else q.streak = 0;
     q.right++;
@@ -817,7 +842,7 @@ function nextQuestion() {
 function showSolution() {
   const q = S.q;
   q.state = "show";
-  const scenes = buildScenes(q.trace, lang(), q.layout);
+  const sol = solutionScenes(q.expr, lang(), { simplify: isFractionStyle() });
   const back = () => {
     // returning from a solution always moves on to a fresh question
     q.asked++;
@@ -830,7 +855,7 @@ function showSolution() {
       drawQuestion();
     }
   };
-  sceneViewer({ scenes, trace: q.trace, layout: q.layout, boardable: q.boardable, tag: "solution", finishLabel: t("nextQuestion"), onFinish: back });
+  sceneViewer({ scenes: sol.scenes, trace: sol.trace || (sol.plain ? null : chipsFor(q.expr)), layout: sol.layout, boardable: sol.boardable, tag: "solution", finishLabel: t("nextQuestion"), onFinish: back });
 }
 
 /* ------------------------------------------------------------------ Done */

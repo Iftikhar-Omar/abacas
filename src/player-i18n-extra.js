@@ -1382,5 +1382,1727 @@ export const extra = {
   "hi": "इन मनकों को वहीं रहने दो। हम अगले कदम पर चलते हैं।",
   "ar": "اترك هذه الخرزات في مكانها. ننتقل إلى الخطوة التالية.",
   "zh": "把这些算珠留在原处。我们继续下一步。"
+ },
+ "sc_clearAgain": {
+  "es": "Limpia el ábaco",
+  "hi": "बोर्ड साफ़ करो",
+  "ar": "امسح المعداد",
+  "zh": "清空算盘"
+ },
+ "sc_clearAgainBody": {
+  "es": "Esa parte la guardamos a salvo. Ahora la siguiente empieza con el ábaco vacío.",
+  "hi": "वह हिस्सा सुरक्षित रखा है। अब अगला हिस्सा खाली अबेकस से शुरू होता है।",
+  "ar": "احتفظنا بتلك الخطوة في مكان آمن. الآن تبدأ الخطوة التالية على معداد فارغ.",
+  "zh": "这部分我们先保存好。现在下一部分从空的算盘开始。"
+ },
+ "sc_resultBuild": {
+  "es": "Ponemos la respuesta en el ábaco para que la veas.",
+  "hi": "उत्तर अबेकस पर रखते हैं, ताकि आप देख सकें।",
+  "ar": "نضع الجواب على المعداد لتراه.",
+  "zh": "把答案摆在算盘上，方便你看到。"
+ },
+ "fr_start": {
+  "es": "{a}/{b} {op} {c}/{d}",
+  "hi": "{a}/{b} {op} {c}/{d}",
+  "ar": "{a}/{b} {op} {c}/{d}",
+  "zh": "{a}/{b} {op} {c}/{d}"
+ },
+ "fr_startB": {
+  "es": "Una fracción es una parte de un todo. Abajo está cuántas partes iguales hay. Arriba, cuántas partes tenemos.",
+  "hi": "भिन्न किसी पूरे का एक हिस्सा है। नीचे की संख्या बताती है कि कितने बराबर टुकड़े हैं। ऊपर की संख्या बताती है कि हमारे पास कितने टुकड़े हैं।",
+  "ar": "الكسر جزء من كل. الرقم السفلي يخبرنا كم قطعة متساوية هناك، والرقم العلوي يخبرنا كم قطعة لدينا.",
+  "zh": "分数是整体的一部分。下面的数字表示总共分成几个相等的部分，上面的数字表示我们拿了几份。"
+ },
+ "fr_common": {
+  "es": "Igualemos los de abajo",
+  "hi": "नीचे की संख्याएँ बराबर करो",
+  "ar": "اجعل الأرقام السفلية متساوية",
+  "zh": "让分母相同"
+ },
+ "fr_commonB": {
+  "es": "Solo podemos sumar o restar piezas del mismo tamaño. El número de abajo más pequeño que sirve para {b} y {d} es {L}.",
+  "hi": "हम केवल एक ही आकार के टुकड़े जोड़ या घटा सकते हैं। {b} और {d} दोनों के लिए सबसे छोटी नीचे की संख्या {L} है।",
+  "ar": "لا يمكننا جمع الأجزاء أو طرحها إلا إذا كانت بالحجم نفسه. أصغر رقم سفلي يناسب {b} و{d} هو {L}.",
+  "zh": "只有大小相同的部分才能相加或相减。适用于 {b} 和 {d} 的最小分母是 {L}。"
+ },
+ "fr_lcm": {
+  "es": "Mismo número de abajo:",
+  "hi": "नीचे की समान संख्या:",
+  "ar": "الرقم السفلي المشترك:",
+  "zh": "相同的分母："
+ },
+ "fr_convert": {
+  "es": "Corta en piezas más pequeñas",
+  "hi": "छोटे टुकड़ों में काटो",
+  "ar": "قسّمها إلى قطع أصغر",
+  "zh": "切成更小的块"
+ },
+ "fr_convertB": {
+  "es": "{a}/{b} = {a2}/{L} y {c}/{d} = {c2}/{L}. Es la misma cantidad, solo cortada en piezas más pequeñas.",
+  "hi": "{a}/{b} = {a2}/{L} और {c}/{d} = {c2}/{L}। मात्रा वही है, बस छोटे टुकड़ों में काटी गई है।",
+  "ar": "{a}/{b} = {a2}/{L} و{c}/{d} = {c2}/{L}. الكمية نفسها، لكنها مقسّمة إلى قطع أصغر.",
+  "zh": "{a}/{b} = {a2}/{L}，{c}/{d} = {c2}/{L}。数量没有变，只是切成了更小的块。"
+ },
+ "fr_addTops": {
+  "es": "Suma los de arriba",
+  "hi": "ऊपर की संख्याएँ जोड़ो",
+  "ar": "اجمع الأرقام العلوية",
+  "zh": "把分子相加"
+ },
+ "fr_takeTops": {
+  "es": "Resta los de arriba",
+  "hi": "ऊपर की संख्याओं में से घटाओ",
+  "ar": "اطرح الأرقام العلوية",
+  "zh": "把分子相减"
+ },
+ "fr_combineB": {
+  "es": "Ahora las piezas son del mismo tamaño, así que solo trabajamos con los de arriba. El de abajo se queda en {L}.",
+  "hi": "अब टुकड़े एक ही आकार के हैं, इसलिए हम केवल ऊपर की संख्याओं के साथ काम करते हैं। नीचे की संख्या {L} ही रहती है।",
+  "ar": "الأجزاء الآن بالحجم نفسه، لذلك نعمل فقط على الأرقام العلوية. يبقى الرقم السفلي {L}.",
+  "zh": "现在各部分大小相同，所以只需计算分子。分母仍然是 {L}。"
+ },
+ "fr_simplify": {
+  "es": "Hazlo más sencillo",
+  "hi": "इसे सरल बनाओ",
+  "ar": "بسّطه",
+  "zh": "化简"
+ },
+ "fr_simplifyB": {
+  "es": "{n} y {d} se pueden dividir entre {g}. Así que {n}/{d} = {rn}/{rd}. Misma cantidad, menos piezas.",
+  "hi": "{n} और {d} दोनों को {g} से भाग दिया जा सकता है। तो {n}/{d} = {rn}/{rd}। मात्रा वही, टुकड़े कम।",
+  "ar": "يمكن قسمة {n} و{d} على {g}. إذن {n}/{d} = {rn}/{rd}. الكمية نفسها، لكن بقطع أقل.",
+  "zh": "{n} 和 {d} 都可以被 {g} 整除。所以 {n}/{d} = {rn}/{rd}。数量相同，块数更少。"
+ },
+ "fr_flip": {
+  "es": "¿Dividir entre una fracción? ¡Dale la vuelta!",
+  "hi": "भिन्न से भाग देना है? उसे पलट दो!",
+  "ar": "القسمة على كسر؟ اقلبه!",
+  "zh": "除以分数？把它倒过来！"
+ },
+ "fr_flipB": {
+  "es": "Dividir entre {c}/{d} es lo mismo que multiplicar por {d}/{c}.",
+  "hi": "{c}/{d} से भाग देना वैसा ही है जैसे {d}/{c} से गुणा करना।",
+  "ar": "القسمة على {c}/{d} تساوي الضرب في {d}/{c}.",
+  "zh": "除以 {c}/{d} 等于乘以 {d}/{c}。"
+ },
+ "fr_mul": {
+  "es": "Arriba por arriba, abajo por abajo",
+  "hi": "ऊपर का ऊपर से गुणा, नीचे का नीचे से गुणा",
+  "ar": "الأعلى في الأعلى، والأسفل في الأسفل",
+  "zh": "分子乘分子，分母乘分母"
+ },
+ "fr_mulB": {
+  "es": "{a} × {x} = {n} y {b} × {y} = {m}.",
+  "hi": "{a} × {x} = {n} और {b} × {y} = {m}।",
+  "ar": "{a} × {x} = {n} و{b} × {y} = {m}.",
+  "zh": "{a} × {x} = {n}，{b} × {y} = {m}。"
+ },
+ "fr_simp0": {
+  "es": "¿Podemos simplificar {a}/{b}?",
+  "hi": "क्या {a}/{b} को सरल बना सकते हैं?",
+  "ar": "هل يمكننا تبسيط {a}/{b}؟",
+  "zh": "能把 {a}/{b} 化简吗？"
+ },
+ "fr_simp0b": {
+  "es": "Busca un número que divida el de arriba y el de abajo.",
+  "hi": "ऐसी संख्या खोजो जो ऊपर और नीचे दोनों को पूरा-पूरा बाँट दे।",
+  "ar": "ابحث عن رقم يقسم العدد العلوي والسفلي معًا.",
+  "zh": "找一个能同时整除分子和分母的数。"
+ },
+ "fr_alreadySimple": {
+  "es": "{a}/{b} ya es lo más sencillo posible",
+  "hi": "{a}/{b} पहले से ही सबसे सरल है",
+  "ar": "{a}/{b} بسيط بالفعل إلى أقصى حد",
+  "zh": "{a}/{b} 已经是最简形式"
+ },
+ "fr_alreadySimpleB": {
+  "es": "Ningún número, excepto el 1, divide a la vez el de arriba y el de abajo.",
+  "hi": "1 के अलावा कोई भी संख्या ऊपर और नीचे दोनों को नहीं बाँटती।",
+  "ar": "لا يوجد رقم غير 1 يقسم العدد العلوي والسفلي معًا.",
+  "zh": "除了 1 以外，没有哪个数能同时整除分子和分母。"
+ },
+ "fr_answer": {
+  "es": "La respuesta es {r}",
+  "hi": "उत्तर है {r}",
+  "ar": "الجواب هو {r}",
+  "zh": "答案是 {r}"
+ },
+ "fr_answerWhole": {
+  "es": "¡Es un número entero. Todas las piezas forman enteros completos!",
+  "hi": "यह एक पूरी संख्या है। सारे टुकड़े मिलकर पूरे बन जाते हैं!",
+  "ar": "هذا عدد صحيح. كل الأجزاء تكوّن أعدادًا كاملة!",
+  "zh": "这是一个整数。所有的块正好组成完整的整体！"
+ },
+ "fr_answerMixed": {
+  "es": "Eso es {m}, o {v} en decimal.",
+  "hi": "यह {m} है, या दशमलव में {v}।",
+  "ar": "هذا {m}، أو {v} بالكسور العشرية.",
+  "zh": "即 {m}，写成小数是 {v}。"
+ },
+ "fr_answerDec": {
+  "es": "En decimal, eso es {v}.",
+  "hi": "दशमलव में यह {v} है।",
+  "ar": "بالكسور العشرية هذا {v}.",
+  "zh": "写成小数是 {v}。"
+ },
+ "pp_order": {
+  "es": "El orden importa",
+  "hi": "क्रम मायने रखता है",
+  "ar": "الترتيب مهم",
+  "zh": "运算顺序很重要"
+ },
+ "pp_orderB": {
+  "es": "Primero los paréntesis. Luego multiplicar y dividir. Después sumar y restar.",
+  "hi": "पहले कोष्ठक। फिर गुणा और भाग। फिर जोड़ और घटाव।",
+  "ar": "أولًا الأقواس. ثم الضرب والقسمة. ثم الجمع والطرح.",
+  "zh": "先算括号，再乘除，最后加减。"
+ },
+ "pp_group": {
+  "es": "{a} × {b} significa {b} grupos de {a}",
+  "hi": "{a} × {b} का मतलब है {a} के {b} समूह",
+  "ar": "{a} × {b} تعني {b} مجموعات من {a}",
+  "zh": "{a} × {b} 表示 {b} 组，每组 {a}"
+ },
+ "pp_groupB": {
+  "es": "Suma {a} una y otra vez. ¡El ábaco puede hacerlo!",
+  "hi": "{a} को बार-बार जोड़ो। अबेकस यह कर सकता है!",
+  "ar": "أضف {a} مرارًا وتكرارًا. المعداد يستطيع فعل ذلك!",
+  "zh": "一次又一次地加上 {a}。算盘可以做到！"
+ },
+ "pp_swapB": {
+  "es": "En la multiplicación el orden no importa, así que usamos {n} grupos.",
+  "hi": "गुणा में क्रम मायने नहीं रखता, इसलिए हम {n} समूह लेते हैं।",
+  "ar": "في الضرب الترتيب غير مهم، لذا نستخدم {n} مجموعات.",
+  "zh": "乘法中顺序不影响结果，所以我们用 {n} 组。"
+ },
+ "pp_split": {
+  "es": "Divide {b} en {parts}",
+  "hi": "{b} को {parts} में बाँटो",
+  "ar": "قسّم {b} إلى {parts}",
+  "zh": "把 {b} 拆成 {parts}"
+ },
+ "pp_splitB": {
+  "es": "Multiplica {a} por cada parte y luego suma los resultados.",
+  "hi": "{a} को हर टुकड़े से गुणा करो, फिर उत्तरों को जोड़ो।",
+  "ar": "اضرب {a} في كل جزء، ثم اجمع النواتج.",
+  "zh": "用 {a} 分别乘以每一部分，再把结果相加。"
+ },
+ "pp_partB": {
+  "es": "Una parte de la respuesta.",
+  "hi": "उत्तर का एक हिस्सा।",
+  "ar": "جزء واحد من الجواب.",
+  "zh": "答案的一部分。"
+ },
+ "pp_sumparts": {
+  "es": "Suma las partes",
+  "hi": "टुकड़े जोड़ो",
+  "ar": "اجمع الأجزاء",
+  "zh": "把各部分相加"
+ },
+ "pp_sumpartsB": {
+  "es": "Ahora el ábaco suma las partes juntas.",
+  "hi": "अब अबेकस टुकड़ों को एक साथ जोड़ता है।",
+  "ar": "الآن يجمع المعداد الأجزاء معًا.",
+  "zh": "现在算盘把各部分加在一起。"
+ },
+ "pp_zero": {
+  "es": "Cualquier cosa por 0 es 0",
+  "hi": "कोई भी संख्या 0 से गुणा हो तो 0 मिलता है",
+  "ar": "أي عدد مضروبًا في 0 يساوي 0",
+  "zh": "任何数乘以 0 都得 0"
+ },
+ "pp_zeroB": {
+  "es": "Cero grupos, o grupos de nada, no dan nada.",
+  "hi": "शून्य समूह, यानी कुछ न होने के समूह, कुछ नहीं बनाते।",
+  "ar": "صفر مجموعات، أو مجموعات من لا شيء، لا تعطي شيئًا.",
+  "zh": "零组，或者说没有东西的组，结果都是零。"
+ },
+ "pp_dots": {
+  "es": "Primero ignora los puntos",
+  "hi": "पहले बिंदुओं को अनदेखा करो",
+  "ar": "تجاهل النقاط أولًا",
+  "zh": "先忽略小数点"
+ },
+ "pp_dotsB": {
+  "es": "{a} y {b} se convierten en los números enteros {ia} y {ib}.",
+  "hi": "{a} और {b} बन जाते हैं पूर्ण संख्याएँ {ia} और {ib}।",
+  "ar": "{a} و{b} تصبح الأعداد الصحيحة {ia} و{ib}.",
+  "zh": "{a} 和 {b} 变成整数 {ia} 和 {ib}。"
+ },
+ "pp_dotsBack": {
+  "es": "Vuelve a poner el punto",
+  "hi": "बिंदु वापस लगाओ",
+  "ar": "أعد النقطة",
+  "zh": "把小数点放回去"
+ },
+ "pp_dotsBackB": {
+  "es": "{x} cifras decimales y {y} cifras decimales hacen {z}. Así que la respuesta es {r}.",
+  "hi": "{x} दशमलव स्थान और {y} दशमलव स्थान मिलकर {z} बनाते हैं। तो उत्तर है {r}।",
+  "ar": "{x} منزلة عشرية و{y} منزلة عشرية تساوي {z}. إذن الجواب هو {r}.",
+  "zh": "{x} 位小数和 {y} 位小数合起来是 {z} 位。所以答案是 {r}。"
+ },
+ "pp_divStart": {
+  "es": "{a} ÷ {b}: ¿cuántos {b} caben en {a}?",
+  "hi": "{a} ÷ {b}: {a} में {b} कितनी बार आएगा?",
+  "ar": "{a} ÷ {b}: كم مرة يتسع {b} في {a}؟",
+  "zh": "{a} ÷ {b}：{a} 里面有几个 {b}？"
+ },
+ "pp_divStartB": {
+  "es": "Vamos una cifra cada vez, empezando por la izquierda.",
+  "hi": "हम बाएँ से एक-एक अंक लेते हैं।",
+  "ar": "نعمل رقمًا واحدًا في كل مرة، من اليسار.",
+  "zh": "从左边开始，一次看一位数。"
+ },
+ "pp_divStep": {
+  "es": "Mira {cur}",
+  "hi": "{cur} को देखो",
+  "ar": "انظر إلى {cur}",
+  "zh": "看 {cur}"
+ },
+ "pp_divStepB": {
+  "es": "{b} cabe {q} veces en {cur} ({b} × {q} = {u}). Sobran {rem}.",
+  "hi": "{cur} में {b} {q} बार आता है ({b} × {q} = {u})। {rem} बचता है।",
+  "ar": "يتسع {b} في {cur} {q} مرات ({b} × {q} = {u}). ويبقى {rem}.",
+  "zh": "{cur} 里有 {q} 个 {b}（{b} × {q} = {u}）。余 {rem}。"
+ },
+ "pp_divStep0": {
+  "es": "{b} todavía no cabe en {cur}, así que tomamos también la siguiente cifra.",
+  "hi": "{b}, {cur} में अभी नहीं समाता, इसलिए अगला अंक भी ले लेते हैं।",
+  "ar": "{b} لا يتسع في {cur} بعد، لذلك نأخذ الرقم التالي أيضًا.",
+  "zh": "{cur} 还不够 {b}，所以我们再带上下一位数。"
+ },
+ "pp_divExact": {
+  "es": "Divide exactamente: {r}",
+  "hi": "यह पूरा-पूरा बँट जाता है: {r}",
+  "ar": "القسمة تامة: {r}",
+  "zh": "正好除尽：{r}"
+ },
+ "pp_divExactB": {
+  "es": "Comprobación: {r} × {b} = {a}.",
+  "hi": "जाँच: {r} × {b} = {a}।",
+  "ar": "تحقق: {r} × {b} = {a}.",
+  "zh": "验算：{r} × {b} = {a}。"
+ },
+ "pp_divRem": {
+  "es": "{Q} y sobran {rem}",
+  "hi": "{Q} और {rem} बचते हैं",
+  "ar": "{Q} والباقي {rem}",
+  "zh": "商 {Q}，余 {rem}"
+ },
+ "pp_divRemB": {
+  "es": "{a} = {b} × {Q} + {rem}. En decimal, eso es {v}.",
+  "hi": "{a} = {b} × {Q} + {rem}। दशमलव में यह {v} है।",
+  "ar": "{a} = {b} × {Q} + {rem}. بالكسور العشرية هذا {v}.",
+  "zh": "{a} = {b} × {Q} + {rem}。写成小数是 {v}。"
+ },
+ "pp_divScale": {
+  "es": "Convierte {b} en un número entero",
+  "hi": "{b} को पूर्ण संख्या बनाओ",
+  "ar": "اجعل {b} عددًا صحيحًا",
+  "zh": "把 {b} 变成整数"
+ },
+ "pp_divScaleB": {
+  "es": "Multiplica los dos números por {f}. La respuesta no cambia: {a2} ÷ {b2}.",
+  "hi": "दोनों संख्याओं को {f} से गुणा करो। उत्तर वही रहता है: {a2} ÷ {b2}।",
+  "ar": "اضرب العددين في {f}. الجواب يبقى نفسه: {a2} ÷ {b2}.",
+  "zh": "两个数都乘以 {f}，结果不变：{a2} ÷ {b2}。"
+ },
+ "pp_pow": {
+  "es": "{a}^{n} significa {a} multiplicado por sí mismo {n} veces",
+  "hi": "{a}^{n} का मतलब है {a} को स्वयं से {n} बार गुणा करना",
+  "ar": "{a}^{n} تعني ضرب {a} في نفسه {n} مرات",
+  "zh": "{a}^{n} 表示 {a} 自乘 {n} 次"
+ },
+ "pp_powB": {
+  "es": "Multiplicamos paso a paso.",
+  "hi": "हम एक-एक कदम करके गुणा करते हैं।",
+  "ar": "نضرب خطوة بخطوة.",
+  "zh": "一步一步地相乘。"
+ },
+ "pp_powStep": {
+  "es": "Paso {k} de {n}",
+  "hi": "चरण {k}, कुल {n} में से",
+  "ar": "الخطوة {k} من {n}",
+  "zh": "第 {k} 步，共 {n} 步"
+ },
+ "pp_sqrt": {
+  "es": "Raíz cuadrada de {a}",
+  "hi": "{a} का वर्गमूल",
+  "ar": "الجذر التربيعي لـ {a}",
+  "zh": "{a} 的平方根"
+ },
+ "pp_sqrtB0": {
+  "es": "¿Qué número multiplicado por sí mismo da {a}? Ese número es la raíz cuadrada.",
+  "hi": "कौन-सी संख्या स्वयं से गुणा होकर {a} बनाती है? वही वर्गमूल है।",
+  "ar": "ما العدد الذي إذا ضُرب في نفسه أعطى {a}؟ ذلك العدد هو الجذر التربيعي.",
+  "zh": "哪个数自乘等于 {a}？那个数就是平方根。"
+ },
+ "pp_sqrtR": {
+  "es": "Es {r}",
+  "hi": "यह {r} है",
+  "ar": "إنه {r}",
+  "zh": "是 {r}"
+ },
+ "pp_sqrtRB": {
+  "es": "{r} × {r} = {a}, así que la raíz cuadrada de {a} es {r}.",
+  "hi": "{r} × {r} = {a}, तो {a} का वर्गमूल {r} है।",
+  "ar": "{r} × {r} = {a}، إذن الجذر التربيعي لـ {a} هو {r}.",
+  "zh": "{r} × {r} = {a}，所以 {a} 的平方根是 {r}。"
+ },
+ "pp_signs": {
+  "es": "Primero mira los signos",
+  "hi": "पहले चिह्नों को देखो",
+  "ar": "انظر إلى الإشارات أولًا",
+  "zh": "先看符号"
+ },
+ "pp_sgnSame": {
+  "es": "Mismos signos: suma los tamaños y deja el mismo signo.",
+  "hi": "एक जैसे चिह्न: मान जोड़ो और चिह्न वही रखो।",
+  "ar": "إشارتان متشابهتان: اجمع المقدارين واحتفظ بالإشارة نفسها.",
+  "zh": "符号相同：把绝对值相加，保留原来的符号。"
+ },
+ "pp_sgnDiff": {
+  "es": "Signos distintos: resta el tamaño menor al mayor. La respuesta tiene el signo del mayor.",
+  "hi": "अलग चिह्न: बड़े मान में से छोटा मान घटाओ। उत्तर का चिह्न बड़े मान वाला होता है।",
+  "ar": "إشارتان مختلفتان: اطرح الأصغر من الأكبر. تأخذ الإجابة إشارة الأكبر.",
+  "zh": "符号不同：用较大的绝对值减去较小的。结果的符号与绝对值较大的数相同。"
+ },
+ "pp_sgnSub": {
+  "es": "Restar un número es lo mismo que sumar su opuesto.",
+  "hi": "किसी संख्या को घटाना उसके विपरीत को जोड़ने जैसा है।",
+  "ar": "طرح عدد يساوي جمع معكوسه.",
+  "zh": "减去一个数等于加上它的相反数。"
+ },
+ "pp_sgnMulSame": {
+  "es": "Signos iguales dan una respuesta positiva.",
+  "hi": "एक जैसे चिह्न धनात्मक उत्तर देते हैं।",
+  "ar": "الإشارتان المتشابهتان تعطيان جوابًا موجبًا.",
+  "zh": "符号相同，结果为正。"
+ },
+ "pp_sgnMulDiff": {
+  "es": "Signos distintos dan una respuesta negativa.",
+  "hi": "अलग चिह्न ऋणात्मक उत्तर देते हैं।",
+  "ar": "الإشارتان المختلفتان تعطيان جوابًا سالبًا.",
+  "zh": "符号不同，结果为负。"
+ },
+ "pp_sizes": {
+  "es": "Ahora solo los tamaños",
+  "hi": "अब केवल मान",
+  "ar": "الآن المقادير فقط",
+  "zh": "现在只看绝对值"
+ },
+ "pp_sizesB": {
+  "es": "Ignora los signos y trabaja con los números sin signo.",
+  "hi": "चिह्नों को छोड़ दो और सादी संख्याओं के साथ काम करो।",
+  "ar": "تجاهل الإشارات واعمل على الأعداد وحدها.",
+  "zh": "忽略符号，只计算数字本身。"
+ },
+ "pp_signResult": {
+  "es": "Así que da {r}",
+  "hi": "तो परिणाम है {r}",
+  "ar": "إذن الناتج {r}",
+  "zh": "所以结果是 {r}"
+ },
+ "pp_belowZero": {
+  "es": "La respuesta está por debajo de cero, así que tiene signo menos.",
+  "hi": "उत्तर शून्य से नीचे है, इसलिए उस पर ऋण चिह्न है।",
+  "ar": "الجواب أقل من الصفر، لذلك يحمل إشارة الطرح.",
+  "zh": "答案小于零，所以带负号。"
+ },
+ "pp_notBelowZero": {
+  "es": "La respuesta está por encima de cero, así que no lleva signo menos.",
+  "hi": "उत्तर शून्य से ऊपर है, इसलिए कोई ऋण चिह्न नहीं।",
+  "ar": "الجواب أكبر من الصفر، لذلك لا توجد إشارة طرح.",
+  "zh": "答案大于零，所以不带负号。"
+ },
+ "pp_belowTitle": {
+  "es": "{a} − {b}: vamos por debajo de cero",
+  "hi": "{a} − {b}: हम शून्य से नीचे जाते हैं",
+  "ar": "{a} − {b}: نهبط إلى ما دون الصفر",
+  "zh": "{a} − {b}：结果要落到零以下"
+ },
+ "pp_belowB": {
+  "es": "{b} es mayor que {a}. Calcula cuánto es mayor y luego pon un signo menos.",
+  "hi": "{b}, {a} से बड़ा है। कितना बड़ा है यह पता करो, फिर ऋण चिह्न लगाओ।",
+  "ar": "{b} أكبر من {a}. اعرف كم الفرق، ثم ضع إشارة الطرح.",
+  "zh": "{b} 比 {a} 大。先算出大多少，再加上负号。"
+ },
+ "pp_partDone": {
+  "es": "{eq}",
+  "hi": "{eq}",
+  "ar": "{eq}",
+  "zh": "{eq}"
+ },
+ "pp_partDoneB": {
+  "es": "Ahora tenemos: {rest}",
+  "hi": "अब हमारे पास है: {rest}",
+  "ar": "الآن لدينا: {rest}",
+  "zh": "现在得到：{rest}"
+ },
+ "pp_finalB": {
+  "es": "¡Esa es la respuesta a toda la suma!",
+  "hi": "यही पूरे सवाल का उत्तर है!",
+  "ar": "هذا هو جواب العملية كاملة!",
+  "zh": "这就是整道题的答案！"
+ },
+ "pc_what": {
+  "es": "El {p}% de {n}",
+  "hi": "{n} का {p}%",
+  "ar": "{p}% من {n}",
+  "zh": "{n} 的 {p}%"
+ },
+ "pc_whatB": {
+  "es": "Por ciento significa \"de cada 100\". {p}% es {p} de cada 100.",
+  "hi": "प्रतिशत का मतलब है \"प्रति 100 में\"। {p}% यानी हर 100 में {p}।",
+  "ar": "النسبة المئوية تعني \"من كل 100\". {p}% تعني {p} من كل 100.",
+  "zh": "百分数表示“每 100 个中的几个”。{p}% 就是每 100 个里有 {p} 个。"
+ },
+ "pc_simp": {
+  "es": "Haz la fracción más sencilla",
+  "hi": "भिन्न को आसान बनाओ",
+  "ar": "اجعل الكسر أسهل",
+  "zh": "把分数化得更简单"
+ },
+ "pc_simpB": {
+  "es": "{p}/100 es lo mismo que {rn}/{rd}.",
+  "hi": "{p}/100 वही है जो {rn}/{rd} है।",
+  "ar": "{p}/100 تساوي {rn}/{rd}.",
+  "zh": "{p}/100 等于 {rn}/{rd}。"
+ },
+ "pc_find": {
+  "es": "Halla {rn}/{rd} de {n}",
+  "hi": "{n} का {rn}/{rd} निकालो",
+  "ar": "أوجد {rn}/{rd} من {n}",
+  "zh": "求 {n} 的 {rn}/{rd}"
+ },
+ "pc_findB": {
+  "es": "Divide {n} en {rd} partes iguales: {n} ÷ {rd} = {x}.",
+  "hi": "{n} को {rd} बराबर हिस्सों में बाँटो: {n} ÷ {rd} = {x}।",
+  "ar": "اقسم {n} إلى {rd} أجزاء متساوية: {n} ÷ {rd} = {x}.",
+  "zh": "把 {n} 平均分成 {rd} 份：{n} ÷ {rd} = {x}。"
+ },
+ "pc_findMul": {
+  "es": "Toma {rn} de esas partes",
+  "hi": "उन हिस्सों में से {rn} लो",
+  "ar": "خذ {rn} من تلك الأجزاء",
+  "zh": "取其中的 {rn} 份"
+ },
+ "pc_findMulB": {
+  "es": "{x} × {rn} = {ans}.",
+  "hi": "{x} × {rn} = {ans}।",
+  "ar": "{x} × {rn} = {ans}.",
+  "zh": "{x} × {rn} = {ans}。"
+ },
+ "pc_one": {
+  "es": "Multiplica y luego divide entre 100",
+  "hi": "गुणा करो, फिर 100 से भाग दो",
+  "ar": "اضرب، ثم اقسم على 100",
+  "zh": "先乘，再除以 100"
+ },
+ "pc_oneB": {
+  "es": "{n} × {p} = {m}, luego {m} ÷ 100 = {ans}.",
+  "hi": "{n} × {p} = {m}, फिर {m} ÷ 100 = {ans}।",
+  "ar": "{n} × {p} = {m}، ثم {m} ÷ 100 = {ans}.",
+  "zh": "{n} × {p} = {m}，再 {m} ÷ 100 = {ans}。"
+ },
+ "fr_chain": {
+  "es": "Números enteros y fracciones juntos",
+  "hi": "पूर्ण संख्याएँ और भिन्न साथ-साथ",
+  "ar": "الأعداد الصحيحة والكسور معًا",
+  "zh": "整数和分数放在一起"
+ },
+ "fr_chainB": {
+  "es": "Cualquier número se puede escribir como piezas. Un entero es solo muchas piezas enteras.",
+  "hi": "हर संख्या को टुकड़ों के रूप में लिखा जा सकता है। पूर्ण संख्या बस बहुत सारे पूरे टुकड़े होते हैं।",
+  "ar": "كل عدد يمكن كتابته على شكل أجزاء. العدد الصحيح ببساطة أجزاء كاملة كثيرة.",
+  "zh": "每个数都可以写成若干份。整数只是很多个完整的份。"
+ },
+ "fr_commonAll": {
+  "es": "Para sumarlos todos, cada número necesita el mismo número de abajo. El más pequeño que sirve es {L}.",
+  "hi": "सबको जोड़ने के लिए हर संख्या की नीचे वाली संख्या एक जैसी होनी चाहिए। सबसे छोटी संख्या जो चलती है, वह {L} है।",
+  "ar": "لجمعها كلها، يحتاج كل عدد إلى الرقم السفلي نفسه. أصغر رقم يصلح هو {L}.",
+  "zh": "要把它们全部相加，每个数都需要相同的分母。可用的最小分母是 {L}。"
+ },
+ "fr_convertAll": {
+  "es": "Escribimos cada número en piezas de 1/{L}. Las cantidades no cambian.",
+  "hi": "हम हर संख्या को 1/{L} के टुकड़ों में लिखते हैं। मात्राएँ वही रहती हैं।",
+  "ar": "نكتب كل عدد على شكل أجزاء من 1/{L}. الكميات تبقى كما هي.",
+  "zh": "我们把每个数都写成 1/{L} 的份数。数量保持不变。"
+ },
+ "readToMe": {
+  "es": "Léeme las lecciones en voz alta",
+  "hi": "पाठ मुझे ज़ोर से पढ़कर सुनाओ",
+  "ar": "اقرأ لي الدروس بصوت عالٍ",
+  "zh": "大声朗读课程给我听"
+ },
+ "soundFx": {
+  "es": "Reproducir sonidos al tocar",
+  "hi": "टैप करने पर आवाज़ें बजाओ",
+  "ar": "شغّل الأصوات عند النقر",
+  "zh": "点击时播放声音"
+ },
+ "story_add": {
+  "es": "Imagina {a} caramelos. ¡Llegan {b} más!",
+  "hi": "सोचो {a} टॉफ़ियाँ हैं। {b} और आ गईं!",
+  "ar": "تخيّل {a} حلوى. وصلت {b} أخرى!",
+  "zh": "想象有 {a} 颗糖果，又来了 {b} 颗！"
+ },
+ "story_take": {
+  "es": "Imagina {a} caramelos. ¡Se comen {b}!",
+  "hi": "सोचो {a} टॉफ़ियाँ हैं। {b} खा ली गईं!",
+  "ar": "تخيّل {a} حلوى. أُكلت {b}!",
+  "zh": "想象有 {a} 颗糖果，吃掉了 {b} 颗！"
+ },
+ "streakDays": {
+  "es": "Racha de {n} días",
+  "hi": "{n} दिन की लगातार लड़ी",
+  "ar": "سلسلة {n} أيام",
+  "zh": "连续 {n} 天"
+ },
+ "stickersTitle": {
+  "es": "Mis pegatinas",
+  "hi": "मेरे स्टिकर",
+  "ar": "ملصقاتي",
+  "zh": "我的贴纸"
+ },
+ "stickersNote": {
+  "es": "Termina una lección para ganar su pegatina.",
+  "hi": "कोई पाठ पूरा करो और उसका स्टिकर पाओ।",
+  "ar": "أكمل درسًا لتكسب ملصقه.",
+  "zh": "完成一节课即可获得它的贴纸。"
+ },
+ "stickerNew": {
+  "es": "¡Pegatina nueva!",
+  "hi": "नया स्टिकर!",
+  "ar": "ملصق جديد!",
+  "zh": "新贴纸！"
+ },
+ "keepGoing2": {
+  "es": "¡Bien, sigue así!",
+  "hi": "बहुत अच्छे, आगे बढ़ते रहो!",
+  "ar": "أحسنت، واصل!",
+  "zh": "很好，继续加油！"
+ },
+ "boSays": {
+  "es": "Bo dice",
+  "hi": "Bo कहता है",
+  "ar": "Bo يقول",
+  "zh": "Bo 说"
+ },
+ "quickQuestion": {
+  "es": "Pregunta rápida",
+  "hi": "छोटा सा सवाल",
+  "ar": "سؤال سريع",
+  "zh": "小问题"
+ },
+ "pickOne": {
+  "es": "Elige la respuesta",
+  "hi": "उत्तर चुनो",
+  "ar": "اختر الجواب",
+  "zh": "选出答案"
+ },
+ "fd_b_1_t": {
+  "es": "¡Hola! Soy Bo.",
+  "hi": "नमस्ते! मैं Bo हूँ।",
+  "ar": "مرحبًا! أنا Bo.",
+  "zh": "你好！我是 Bo。"
+ },
+ "fd_b_1_b": {
+  "es": "Este es mi ábaco. Las cuentas suben y bajan por la varilla.",
+  "hi": "यह मेरा अबेकस है। मनके छड़ पर ऊपर-नीचे सरकते हैं।",
+  "ar": "هذا معدادي. الخرزات تنزلق صعودًا ونزولًا على العمود.",
+  "zh": "这是我的算盘。算珠可以在杆上上下滑动。"
+ },
+ "fd_b_2_t": {
+  "es": "Toca una cuenta azul.",
+  "hi": "एक नीला मनका टैप करो।",
+  "ar": "انقر على خرزة زرقاء.",
+  "zh": "点一下蓝色算珠。"
+ },
+ "fd_b_2_b": {
+  "es": "¡Vamos, tócala!",
+  "hi": "चलो, एक बार टैप करो!",
+  "ar": "هيا، انقر عليها!",
+  "zh": "来吧，点一下！"
+ },
+ "fd_b_2_ok": {
+  "es": "¡Fiu!",
+  "hi": "व्हूश!",
+  "ar": "فووش!",
+  "zh": "嗖！"
+ },
+ "fd_b_2_okb": {
+  "es": "Subió hasta la barra del medio.",
+  "hi": "यह बीच की पट्टी तक सरक गया।",
+  "ar": "انزلق صعودًا إلى الحاجز الأوسط.",
+  "zh": "它滑到了中间横梁。"
+ },
+ "fd_b_3_t": {
+  "es": "Las cuentas despiertas cuentan.",
+  "hi": "जागे हुए मनके गिने जाते हैं।",
+  "ar": "الخرزات المستيقظة تُحسب.",
+  "zh": "醒着的算珠才计数。"
+ },
+ "fd_b_3_b": {
+  "es": "Una cuenta que toca la barra del medio está despierta. Las cuentas despiertas cuentan. Hay una despierta, así que el número es 1.",
+  "hi": "बीच की पट्टी को छूता मनका जागा हुआ है। जागे हुए मनके गिने जाते हैं। एक मनका जागा है, इसलिए संख्या 1 है।",
+  "ar": "الخرزة التي تلامس الحاجز الأوسط مستيقظة. الخرزات المستيقظة تُحسب. خرزة واحدة مستيقظة، إذن العدد 1.",
+  "zh": "碰到中间横梁的算珠是醒着的。醒着的算珠才计数。现在有一颗醒着，所以数是 1。"
+ },
+ "fd_b_4_t": {
+  "es": "Despierta 3 cuentas.",
+  "hi": "3 मनके जगाओ।",
+  "ar": "أيقظ 3 خرزات.",
+  "zh": "让 3 颗算珠醒过来。"
+ },
+ "fd_b_4_b": {
+  "es": "Toca la tercera cuenta azul.",
+  "hi": "तीसरा नीला मनका टैप करो।",
+  "ar": "انقر على الخرزة الزرقاء الثالثة.",
+  "zh": "点一下第三颗蓝色算珠。"
+ },
+ "fd_b_4_nudge": {
+  "es": "Cuenta las cuentas que tocan la barra. Queremos 3.",
+  "hi": "पट्टी को छूते मनके गिनो। हमें 3 चाहिए।",
+  "ar": "عُدّ الخرزات الملامسة للحاجز. نريد 3.",
+  "zh": "数一数碰到横梁的算珠，我们要的是 3。"
+ },
+ "fd_b_4_ok": {
+  "es": "¡Tres!",
+  "hi": "तीन!",
+  "ar": "ثلاثة!",
+  "zh": "三！"
+ },
+ "fd_b_4_okb": {
+  "es": "1, 2, 3 cuentas están despiertas.",
+  "hi": "1, 2, 3 मनके जागे हैं।",
+  "ar": "1 و2 و3 خرزات مستيقظة.",
+  "zh": "1、2、3 颗算珠醒着。"
+ },
+ "fd_b_5_t": {
+  "es": "¿Cuántas cuentas están despiertas?",
+  "hi": "कितने मनके जागे हैं?",
+  "ar": "كم خرزة مستيقظة؟",
+  "zh": "有几颗算珠醒着？"
+ },
+ "fd_b_5_b": {
+  "es": "Cuenta las cuentas que tocan la barra.",
+  "hi": "पट्टी को छूते मनके गिनो।",
+  "ar": "عُدّ الخرزات الملامسة للحاجز.",
+  "zh": "数一数碰到横梁的算珠。"
+ },
+ "fd_b_5_okb": {
+  "es": "¡Sí! 3 cuentas despiertas dan 3.",
+  "hi": "हाँ! 3 जागे मनके यानी 3।",
+  "ar": "نعم! 3 خرزات مستيقظة تعني 3.",
+  "zh": "对！3 颗醒着的算珠就是 3。"
+ },
+ "fd_b_6_t": {
+  "es": "Ahora duérmelas todas.",
+  "hi": "अब सबको सुला दो।",
+  "ar": "الآن أعدها كلها إلى النوم.",
+  "zh": "现在让它们全部睡去。"
+ },
+ "fd_b_6_b": {
+  "es": "Toca la cuenta azul de arriba. Envía hacia abajo las cuentas que están debajo de ella.",
+  "hi": "सबसे ऊपर वाले नीले मनके को टैप करो। यह उसके नीचे के मनकों को वापस नीचे भेज देता है।",
+  "ar": "انقر على الخرزة الزرقاء العلوية. ستعيد الخرزات التي تحتها إلى الأسفل.",
+  "zh": "点一下最上面的蓝色算珠，它会把下面的算珠送回原位。"
+ },
+ "fd_b_6_ok": {
+  "es": "¡Cero!",
+  "hi": "शून्य!",
+  "ar": "صفر!",
+  "zh": "零！"
+ },
+ "fd_b_6_okb": {
+  "es": "Ninguna cuenta está despierta, así que el número es 0.",
+  "hi": "कोई मनका जागा नहीं है, इसलिए संख्या 0 है।",
+  "ar": "لا توجد خرزة مستيقظة، إذن العدد 0.",
+  "zh": "没有算珠醒着，所以数是 0。"
+ },
+ "fd_b_7_t": {
+  "es": "Despierta las 4 cuentas azules.",
+  "hi": "सारे 4 नीले मनके जगाओ।",
+  "ar": "أيقظ 4 خرزات زرقاء كلها.",
+  "zh": "让 4 颗蓝色算珠全部醒过来。"
+ },
+ "fd_b_7_b": {
+  "es": "Toca la cuenta azul que está más abajo.",
+  "hi": "सबसे नीचे वाले नीले मनके को टैप करो।",
+  "ar": "انقر على الخرزة الزرقاء الأدنى.",
+  "zh": "点一下最下面的蓝色算珠。"
+ },
+ "fd_b_7_ok": {
+  "es": "¡Cuatro!",
+  "hi": "चार!",
+  "ar": "أربعة!",
+  "zh": "四！"
+ },
+ "fd_b_7_okb": {
+  "es": "Son todas las cuentas azules.",
+  "hi": "ये सारे नीले मनके हैं।",
+  "ar": "هذه كل الخرزات الزرقاء.",
+  "zh": "这就是所有的蓝色算珠。"
+ },
+ "fd_b_8_t": {
+  "es": "Cada cuenta azul vale 1.",
+  "hi": "हर नीला मनका 1 के बराबर है।",
+  "ar": "كل خرزة زرقاء تساوي 1.",
+  "zh": "每颗蓝色算珠都代表 1。"
+ },
+ "fd_b_8_b": {
+  "es": "Cuatro es lo máximo que muestran las cuentas azules. Para contar más alto, tengo una cuenta especial. ¡La conoceremos después!",
+  "hi": "चार ही वह सबसे बड़ी संख्या है जो नीले मनके दिखा सकते हैं। और ऊँचा गिनने के लिए मेरे पास एक खास मनका है। अगले में उससे मिलते हैं!",
+  "ar": "الأربعة هي أكبر ما تستطيع الخرزات الزرقاء إظهاره. ولعدّ أعلى، عندي خرزة خاصة. لنتعرف عليها بعد ذلك!",
+  "zh": "蓝色算珠最多只能显示四。要数得更大，我有一颗特别的算珠。下一步我们来认识它！"
+ },
+ "fd_g_1_t": {
+  "es": "Conoce la cuenta grande.",
+  "hi": "बड़े मनके से मिलो।",
+  "ar": "تعرّف إلى الخرزة الكبيرة.",
+  "zh": "认识大算珠。"
+ },
+ "fd_g_1_b": {
+  "es": "La cuenta de arriba es mi cuenta grande. ¡Vale 5, como todos los dedos de una mano!",
+  "hi": "सबसे ऊपर वाला मनका मेरा बड़ा मनका है। यह 5 के बराबर है, जैसे एक हाथ की सारी उँगलियाँ!",
+  "ar": "الخرزة التي في الأعلى هي خرزتي الكبيرة. تساوي 5، مثل أصابع اليد الواحدة!",
+  "zh": "最上面的算珠是我的大算珠。它代表 5，就像一只手的所有手指！"
+ },
+ "fd_g_2_t": {
+  "es": "Toca la cuenta grande.",
+  "hi": "बड़े मनके को टैप करो।",
+  "ar": "انقر على الخرزة الكبيرة.",
+  "zh": "点一下大算珠。"
+ },
+ "fd_g_2_b": {
+  "es": "Deslízala hasta la barra del medio.",
+  "hi": "इसे खिसकाकर बीच की पट्टी तक लाओ।",
+  "ar": "أنزلها إلى الحاجز الأوسط.",
+  "zh": "把它滑到中间横梁。"
+ },
+ "fd_g_2_ok": {
+  "es": "¡Cinco!",
+  "hi": "पाँच!",
+  "ar": "خمسة!",
+  "zh": "五！"
+ },
+ "fd_g_2_okb": {
+  "es": "Una cuenta grande vale 5.",
+  "hi": "एक बड़ा मनका 5 के बराबर है।",
+  "ar": "الخرزة الكبيرة الواحدة تساوي 5.",
+  "zh": "一颗大算珠代表 5。"
+ },
+ "fd_g_3_t": {
+  "es": "Haz el 7.",
+  "hi": "7 बनाओ।",
+  "ar": "كوّن العدد 7.",
+  "zh": "拨出 7。"
+ },
+ "fd_g_3_b": {
+  "es": "Deja la cuenta grande abajo. Luego despierta 2 cuentas azules. 5 y 2 más son 7.",
+  "hi": "बड़े मनके को नीचे ही रहने दो। फिर 2 नीले मनके जगाओ। 5 और 2 मिलकर 7 होते हैं।",
+  "ar": "أبقِ الخرزة الكبيرة في الأسفل. ثم أيقظ 2 من الخرزات الزرقاء. 5 و2 أخرى تساوي 7.",
+  "zh": "让大算珠保持在下面，再让 2 颗蓝色算珠醒过来。5 加 2 等于 7。"
+ },
+ "fd_g_3_nudge": {
+  "es": "5 de la cuenta grande, más 2 cuentas azules.",
+  "hi": "बड़े मनके से 5, और 2 नीले मनके।",
+  "ar": "5 من الخرزة الكبيرة، و2 من الخرزات الزرقاء.",
+  "zh": "大算珠的 5，加上 2 颗蓝色算珠。"
+ },
+ "fd_g_3_ok": {
+  "es": "¡Siete!",
+  "hi": "सात!",
+  "ar": "سبعة!",
+  "zh": "七！"
+ },
+ "fd_g_3_okb": {
+  "es": "5 + 2 = 7.",
+  "hi": "5 + 2 = 7।",
+  "ar": "5 + 2 = 7.",
+  "zh": "5 + 2 = 7。"
+ },
+ "fd_g_4_t": {
+  "es": "¿Qué número es este?",
+  "hi": "यह कौन-सी संख्या है?",
+  "ar": "ما هذا العدد؟",
+  "zh": "这是什么数？"
+ },
+ "fd_g_4_b": {
+  "es": "La cuenta grande es 5. Luego cuenta las cuentas azules.",
+  "hi": "बड़ा मनका 5 है। फिर नीले मनके गिनो।",
+  "ar": "الخرزة الكبيرة تساوي 5. ثم عُدّ الخرزات الزرقاء.",
+  "zh": "大算珠是 5。然后数蓝色算珠。"
+ },
+ "fd_g_4_okb": {
+  "es": "¡Sí! 5 + 3 = 8.",
+  "hi": "हाँ! 5 + 3 = 8।",
+  "ar": "نعم! 5 + 3 = 8.",
+  "zh": "对！5 + 3 = 8。"
+ },
+ "fd_g_5_t": {
+  "es": "Haz el 9.",
+  "hi": "9 बनाओ।",
+  "ar": "كوّن العدد 9.",
+  "zh": "拨出 9。"
+ },
+ "fd_g_5_b": {
+  "es": "Cuenta grande, más las 4 cuentas azules. Es el número más grande que puede mostrar una varilla.",
+  "hi": "बड़ा मनका, और सारे 4 नीले मनके। यही सबसे बड़ी संख्या है जो एक छड़ दिखा सकती है।",
+  "ar": "الخرزة الكبيرة، مع كل الخرزات الزرقاء الـ4. هذا أكبر عدد يمكن أن يُظهره عمود واحد.",
+  "zh": "大算珠加上全部 4 颗蓝色算珠。这是一根杆能显示的最大数字。"
+ },
+ "fd_g_5_nudge": {
+  "es": "Cuenta grande abajo y las cuatro cuentas azules arriba.",
+  "hi": "बड़ा मनका नीचे, और चारों नीले मनके ऊपर।",
+  "ar": "الخرزة الكبيرة إلى الأسفل، والخرزات الزرقاء الأربع إلى الأعلى.",
+  "zh": "大算珠往下拨，四颗蓝色算珠都往上拨。"
+ },
+ "fd_g_5_ok": {
+  "es": "¡Nueve!",
+  "hi": "नौ!",
+  "ar": "تسعة!",
+  "zh": "九！"
+ },
+ "fd_g_5_okb": {
+  "es": "5 + 4 = 9. Una varilla no puede mostrar más de 9.",
+  "hi": "5 + 4 = 9। एक छड़ 9 से ज़्यादा नहीं रख सकती।",
+  "ar": "5 + 4 = 9. العمود الواحد لا يستطيع أن يحمل أكثر من 9.",
+  "zh": "5 + 4 = 9。一根杆最多只能显示 9。"
+ },
+ "fd_g_6_t": {
+  "es": "¿Qué número es este?",
+  "hi": "यह कौन-सी संख्या है?",
+  "ar": "ما هذا العدد؟",
+  "zh": "这是什么数？"
+ },
+ "fd_g_6_b": {
+  "es": "Una cuenta grande y una cuenta azul.",
+  "hi": "एक बड़ा मनका और एक नीला मनका।",
+  "ar": "خرزة كبيرة واحدة وخرزة زرقاء واحدة.",
+  "zh": "一颗大算珠和一颗蓝色算珠。"
+ },
+ "fd_g_6_okb": {
+  "es": "¡Sí! 5 + 1 = 6.",
+  "hi": "हाँ! 5 + 1 = 6।",
+  "ar": "نعم! 5 + 1 = 6.",
+  "zh": "对！5 + 1 = 6。"
+ },
+ "fd_g_7_t": {
+  "es": "Limpia la varilla.",
+  "hi": "छड़ को साफ़ करो।",
+  "ar": "امسح العمود.",
+  "zh": "清空这根杆。"
+ },
+ "fd_g_7_b": {
+  "es": "Vuelve a dormir todas las cuentas.",
+  "hi": "हर मनके को फिर से सुला दो।",
+  "ar": "أعد كل خرزة إلى النوم.",
+  "zh": "让每颗算珠都回去睡觉。"
+ },
+ "fd_g_7_ok": {
+  "es": "¡Otra vez cero!",
+  "hi": "फिर से शून्य!",
+  "ar": "صفر مرة أخرى!",
+  "zh": "又是零！"
+ },
+ "fd_g_7_okb": {
+  "es": "Ahora puedes mostrar todos los números del 0 al 9.",
+  "hi": "अब तुम 0 से 9 तक हर संख्या दिखा सकते हो।",
+  "ar": "الآن تستطيع أن تُظهر كل عدد من 0 إلى 9.",
+  "zh": "现在你可以显示从 0 到 9 的每一个数字了。"
+ },
+ "fd_g_8_t": {
+  "es": "¡Ya sabes leer del 0 al 9!",
+  "hi": "तुम 0 से 9 तक पढ़ सकते हो!",
+  "ar": "تستطيع قراءة الأعداد من 0 إلى 9!",
+  "zh": "你会读 0 到 9 了！"
+ },
+ "fd_g_8_b": {
+  "es": "Después usaremos dos varillas para contar todavía más alto.",
+  "hi": "अगले में हम गिनती और ऊँची करने के लिए दो छड़ों का इस्तेमाल करेंगे।",
+  "ar": "بعد ذلك نستخدم عمودين لنعدّ أعلى.",
+  "zh": "接下来，我们用两根杆来数得更大。"
+ },
+ "fd_t_1_t": {
+  "es": "¡Dos varillas!",
+  "hi": "दो छड़ें!",
+  "ar": "عمودان!",
+  "zh": "两根杆！"
+ },
+ "fd_t_1_b": {
+  "es": "Cada varilla muestra una cifra. La varilla de la derecha es la de las UNIDADES.",
+  "hi": "हर छड़ एक अंक दिखाती है। दाईं छड़ इकाई (ONES) की छड़ है।",
+  "ar": "كل عمود يُظهر رقمًا واحدًا. العمود الذي على اليمين هو عمود الآحاد.",
+  "zh": "每根杆显示一位数字。右边的杆是个位杆。"
+ },
+ "fd_t_2_t": {
+  "es": "Muestra el 4 en la varilla de las unidades.",
+  "hi": "इकाई वाली छड़ पर 4 दिखाओ।",
+  "ar": "أظهر 4 على عمود الآحاد.",
+  "zh": "在个位杆上拨出 4。"
+ },
+ "fd_t_2_b": {
+  "es": "Despierta 4 cuentas azules en la varilla de la derecha.",
+  "hi": "दाईं छड़ पर 4 नीले मनके जगाओ।",
+  "ar": "أيقظ 4 خرزات زرقاء على العمود الأيمن.",
+  "zh": "在右边的杆上让 4 颗蓝色算珠醒过来。"
+ },
+ "fd_t_2_nudge": {
+  "es": "Usa la varilla de la derecha.",
+  "hi": "दाईं छड़ का इस्तेमाल करो।",
+  "ar": "استخدم العمود الأيمن.",
+  "zh": "使用右边的杆。"
+ },
+ "fd_t_2_ok": {
+  "es": "¡4 unidades!",
+  "hi": "4 इकाई!",
+  "ar": "4 آحاد!",
+  "zh": "4 个一！"
+ },
+ "fd_t_2_okb": {
+  "es": "Cuatro cuentas, cada una vale 1.",
+  "hi": "चार मनके, हर एक 1 के बराबर।",
+  "ar": "أربع خرزات، كل واحدة تساوي 1.",
+  "zh": "四颗算珠，每颗代表 1。"
+ },
+ "fd_t_3_t": {
+  "es": "¿Qué viene después del 9?",
+  "hi": "9 के बाद क्या आता है?",
+  "ar": "ماذا يأتي بعد 9؟",
+  "zh": "9 后面是什么？"
+ },
+ "fd_t_3_b": {
+  "es": "La varilla de las unidades se llena en 9. ¡Añade 1 más y diez unidades se convierten en UNA decena en la siguiente varilla!",
+  "hi": "इकाई वाली छड़ 9 पर भर जाती है। 1 और जोड़ो, तो दस इकाइयाँ अगली छड़ पर एक दहाई बन जाती हैं!",
+  "ar": "عمود الآحاد يمتلئ عند 9. أضف 1 آخر، فتصبح العشرة آحاد عشرة واحدة على العمود التالي!",
+  "zh": "个位杆数到 9 就满了。再加 1，十个一就变成一个十，放到下一根杆上！"
+ },
+ "fd_t_4_t": {
+  "es": "La varilla de la izquierda es la de las DECENAS.",
+  "hi": "बाईं छड़ दहाई (TENS) की है।",
+  "ar": "العمود الأيسر هو عمود العشرات.",
+  "zh": "左边的杆是十位杆。"
+ },
+ "fd_t_4_b": {
+  "es": "Una cuenta en la varilla de las decenas vale 10.",
+  "hi": "दहाई वाली छड़ का एक मनका 10 के बराबर है।",
+  "ar": "خرزة واحدة على عمود العشرات تساوي 10.",
+  "zh": "十位杆上的一颗算珠代表 10。"
+ },
+ "fd_t_5_t": {
+  "es": "Muestra el 10.",
+  "hi": "10 दिखाओ।",
+  "ar": "أظهر العدد 10.",
+  "zh": "拨出 10。"
+ },
+ "fd_t_5_b": {
+  "es": "Despierta 1 cuenta azul en la varilla de las decenas, la de la izquierda.",
+  "hi": "बाईं दहाई वाली छड़ पर 1 नीला मनका जगाओ।",
+  "ar": "أيقظ 1 خرزة زرقاء على عمود العشرات، وهو العمود الأيسر.",
+  "zh": "在左边的十位杆上让 1 颗蓝色算珠醒过来。"
+ },
+ "fd_t_5_nudge": {
+  "es": "La varilla de las decenas está a la izquierda. La de las unidades debe estar vacía.",
+  "hi": "दहाई वाली छड़ बाईं ओर है। इकाई वाली छड़ खाली होनी चाहिए।",
+  "ar": "عمود العشرات على اليسار. وعمود الآحاد يجب أن يكون فارغًا.",
+  "zh": "十位杆在左边，个位杆应该是空的。"
+ },
+ "fd_t_5_ok": {
+  "es": "¡Diez!",
+  "hi": "दस!",
+  "ar": "عشرة!",
+  "zh": "十！"
+ },
+ "fd_t_5_okb": {
+  "es": "1 decena y 0 unidades.",
+  "hi": "1 दहाई और 0 इकाई।",
+  "ar": "1 عشرة و0 آحاد.",
+  "zh": "1 个十和 0 个一。"
+ },
+ "fd_t_6_t": {
+  "es": "Muestra el 23.",
+  "hi": "23 दिखाओ।",
+  "ar": "أظهر العدد 23.",
+  "zh": "拨出 23。"
+ },
+ "fd_t_6_b": {
+  "es": "2 decenas en la varilla de la izquierda. 3 unidades en la de la derecha.",
+  "hi": "बाईं छड़ पर 2 दहाई। दाईं छड़ पर 3 इकाई।",
+  "ar": "2 عشرات على العمود الأيسر. و3 آحاد على العمود الأيمن.",
+  "zh": "左边的杆上拨 2 个十，右边的杆上拨 3 个一。"
+ },
+ "fd_t_6_nudge": {
+  "es": "2 cuentas en la varilla de la izquierda y 3 en la de la derecha.",
+  "hi": "बाईं छड़ पर 2 मनके और दाईं छड़ पर 3 मनके।",
+  "ar": "2 خرزات على العمود الأيسر و3 خرزات على العمود الأيمن.",
+  "zh": "左边的杆上 2 颗算珠，右边的杆上 3 颗算珠。"
+ },
+ "fd_t_6_ok": {
+  "es": "¡Veintitrés!",
+  "hi": "तेईस!",
+  "ar": "ثلاثة وعشرون!",
+  "zh": "二十三！"
+ },
+ "fd_t_6_okb": {
+  "es": "2 decenas y 3 unidades.",
+  "hi": "2 दहाई और 3 इकाई।",
+  "ar": "2 عشرات و3 آحاد.",
+  "zh": "2 个十和 3 个一。"
+ },
+ "fd_t_7_t": {
+  "es": "¿Qué número es este?",
+  "hi": "यह कौन-सी संख्या है?",
+  "ar": "ما هذا العدد؟",
+  "zh": "这是什么数？"
+ },
+ "fd_t_7_b": {
+  "es": "Primero la varilla de la izquierda, luego la de la derecha.",
+  "hi": "पहले बाईं छड़, फिर दाईं छड़।",
+  "ar": "العمود الأيسر أولًا، ثم العمود الأيمن.",
+  "zh": "先看左边的杆，再看右边的杆。"
+ },
+ "fd_t_7_okb": {
+  "es": "¡Sí! 3 decenas y 5 unidades son 35.",
+  "hi": "हाँ! 3 दहाई और 5 इकाई यानी 35।",
+  "ar": "نعم! 3 عشرات و5 آحاد تساوي 35.",
+  "zh": "对！3 个十和 5 个一就是 35。"
+ },
+ "fd_t_8_t": {
+  "es": "Muestra el 40.",
+  "hi": "40 दिखाओ।",
+  "ar": "أظهر العدد 40.",
+  "zh": "拨出 40。"
+ },
+ "fd_t_8_b": {
+  "es": "4 decenas y ninguna unidad.",
+  "hi": "4 दहाई और कोई इकाई नहीं।",
+  "ar": "4 عشرات ولا آحاد.",
+  "zh": "4 个十，没有一。"
+ },
+ "fd_t_8_ok": {
+  "es": "¡Cuarenta!",
+  "hi": "चालीस!",
+  "ar": "أربعون!",
+  "zh": "四十！"
+ },
+ "fd_t_8_okb": {
+  "es": "4 decenas, y la varilla de las unidades queda vacía.",
+  "hi": "4 दहाई, और इकाई वाली छड़ खाली रहती है।",
+  "ar": "4 عشرات، ويبقى عمود الآحاد فارغًا.",
+  "zh": "4 个十，个位杆保持空着。"
+ },
+ "fd_m_1_t": {
+  "es": "Bo tiene 2 caramelos.",
+  "hi": "Bo के पास 2 टॉफ़ियाँ हैं।",
+  "ar": "عند Bo 2 حلوى.",
+  "zh": "Bo 有 2 颗糖果。"
+ },
+ "fd_m_1_b": {
+  "es": "Cada cuenta despierta es un caramelo. Cuéntalos: 1, 2.",
+  "hi": "हर जागा मनका एक टॉफ़ी है। गिनो: 1, 2।",
+  "ar": "كل خرزة مستيقظة تمثل حلوى. عُدّها: 1، 2.",
+  "zh": "每颗醒着的算珠代表一颗糖果。数一数：1、2。"
+ },
+ "fd_m_2_t": {
+  "es": "¡Llegan 2 caramelos más!",
+  "hi": "2 और टॉफ़ियाँ आ गईं!",
+  "ar": "وصلت 2 حلوى أخرى!",
+  "zh": "又来了 2 颗糖果！"
+ },
+ "fd_m_2_b": {
+  "es": "Despierta 2 cuentas más.",
+  "hi": "2 और मनके जगाओ।",
+  "ar": "أيقظ 2 خرزة أخرى.",
+  "zh": "再让 2 颗算珠醒过来。"
+ },
+ "fd_m_2_ok": {
+  "es": "¡Cuatro caramelos!",
+  "hi": "चार टॉफ़ियाँ!",
+  "ar": "أربع حلوى!",
+  "zh": "四颗糖果！"
+ },
+ "fd_m_2_okb": {
+  "es": "2 + 2 = 4. Sumar despierta las cuentas.",
+  "hi": "2 + 2 = 4। जोड़ने से मनके जागते हैं।",
+  "ar": "2 + 2 = 4. الجمع يوقظ الخرزات.",
+  "zh": "2 + 2 = 4。加法会让算珠醒过来。"
+ },
+ "fd_m_3_t": {
+  "es": "Bo se come 1 caramelo.",
+  "hi": "Bo 1 टॉफ़ी खा लेता है।",
+  "ar": "Bo يأكل 1 حلوى.",
+  "zh": "Bo 吃掉 1 颗糖果。"
+ },
+ "fd_m_3_b": {
+  "es": "Duerme 1 cuenta. Toca la cuenta despierta de arriba.",
+  "hi": "1 मनके को फिर से सुला दो। सबसे ऊपर वाले जागे मनके को टैप करो।",
+  "ar": "أعد 1 خرزة إلى النوم. انقر على الخرزة المستيقظة العليا.",
+  "zh": "让 1 颗算珠回去睡觉。点一下最上面醒着的算珠。"
+ },
+ "fd_m_3_ok": {
+  "es": "¡Quedan tres!",
+  "hi": "तीन बचीं!",
+  "ar": "بقيت ثلاث!",
+  "zh": "还剩三颗！"
+ },
+ "fd_m_3_okb": {
+  "es": "4 − 1 = 3. Quitar hace dormir a las cuentas.",
+  "hi": "4 − 1 = 3। घटाने से मनके सो जाते हैं।",
+  "ar": "4 − 1 = 3. الطرح يُعيد الخرزات إلى النوم.",
+  "zh": "4 − 1 = 3。减法会让算珠回去睡觉。"
+ },
+ "fd_m_4_t": {
+  "es": "Bo se come 2 más.",
+  "hi": "Bo 2 और खा लेता है।",
+  "ar": "Bo يأكل 2 حلوى أخرى.",
+  "zh": "Bo 又吃掉 2 颗。"
+ },
+ "fd_m_4_b": {
+  "es": "Duerme 2 cuentas.",
+  "hi": "2 मनके सुला दो।",
+  "ar": "أعد 2 خرزة إلى النوم.",
+  "zh": "让 2 颗算珠回去睡觉。"
+ },
+ "fd_m_4_ok": {
+  "es": "¡Solo queda 1!",
+  "hi": "बस 1 बची!",
+  "ar": "بقيت 1 فقط!",
+  "zh": "只剩 1 颗了！"
+ },
+ "fd_m_4_okb": {
+  "es": "3 − 2 = 1.",
+  "hi": "3 − 2 = 1।",
+  "ar": "3 − 2 = 1.",
+  "zh": "3 − 2 = 1。"
+ },
+ "fd_m_5_t": {
+  "es": "Bo tiene 3 y recibe 1 más.",
+  "hi": "Bo के पास 3 हैं और उसे 1 और मिलती है।",
+  "ar": "عند Bo 3، وتحصل على 1 آخر.",
+  "zh": "Bo 有 3 颗，又得到 1 颗。"
+ },
+ "fd_m_5_b": {
+  "es": "Mira las cuentas. ¿Cuántos caramelos hay ahora?",
+  "hi": "मनकों को देखो। अब कितनी टॉफ़ियाँ हैं?",
+  "ar": "انظر إلى الخرزات. كم حلوى الآن؟",
+  "zh": "看看算珠。现在有几颗糖果？"
+ },
+ "fd_m_5_okb": {
+  "es": "¡Sí! 3 + 1 = 4.",
+  "hi": "हाँ! 3 + 1 = 4।",
+  "ar": "نعم! 3 + 1 = 4.",
+  "zh": "对！3 + 1 = 4。"
+ },
+ "fd_m_6_t": {
+  "es": "Ahora compruébalo en el ábaco.",
+  "hi": "अब अबेकस पर जाँचो।",
+  "ar": "الآن تحقق منه على المعداد.",
+  "zh": "现在在算盘上检查一下。"
+ },
+ "fd_m_6_b": {
+  "es": "Despierta 1 cuenta más.",
+  "hi": "1 और मनका जगाओ।",
+  "ar": "أيقظ 1 خرزة أخرى.",
+  "zh": "再让 1 颗算珠醒过来。"
+ },
+ "fd_m_6_ok": {
+  "es": "¡Tenías razón!",
+  "hi": "तुम सही थे!",
+  "ar": "كنت محقًا!",
+  "zh": "你答对了！"
+ },
+ "fd_m_6_okb": {
+  "es": "Adivinar primero y comprobar después es como aprenden los contadores listos.",
+  "hi": "पहले अंदाज़ा लगाना, फिर जाँचना, यही तो होशियार गिनने वाले सीखते हैं।",
+  "ar": "التخمين أولًا ثم التحقق، هكذا يتعلم العدّادون الأذكياء.",
+  "zh": "先猜一猜，再检查，这就是聪明的数数高手的学习方法。"
+ },
+ "fd_m_7_t": {
+  "es": "Sumar = despertar. Restar = dormir.",
+  "hi": "जोड़ = जगाना। घटाना = सुलाना।",
+  "ar": "الجمع = إيقاظ. الطرح = إعادة إلى النوم.",
+  "zh": "加 = 醒过来，减 = 睡过去。"
+ },
+ "fd_m_7_b": {
+  "es": "¡Eso es todo! Después: ¿qué pasa si no hay espacio para más cuentas?",
+  "hi": "बस इतना ही है! अगला सवाल: अगर और मनकों की जगह ही न हो तो?",
+  "ar": "هذا كل شيء! التالي: ماذا لو لم يبقَ مكان لمزيد من الخرزات؟",
+  "zh": "就是这么简单！接下来：如果没有地方放更多算珠怎么办？"
+ },
+ "fd_f_1_t": {
+  "es": "3 + 4: ¡no hay sitio!",
+  "hi": "3 + 4: जगह नहीं है!",
+  "ar": "3 + 4: لا توجد مساحة!",
+  "zh": "3 + 4：没有地方了！"
+ },
+ "fd_f_1_b": {
+  "es": "Bo tiene 3 y quiere 4 más. Pero solo queda 1 cuenta azul por despertar.",
+  "hi": "Bo के पास 3 हैं और उसे 4 और चाहिए। लेकिन जगाने के लिए सिर्फ़ 1 नीला मनका बचा है।",
+  "ar": "عند Bo 3 ويريد 4 أخرى. لكن لم يبقَ إلا 1 خرزة زرقاء لإيقاظها.",
+  "zh": "Bo 有 3 颗，还想再加 4 颗。但只剩 1 颗蓝色算珠可以让它醒过来。"
+ },
+ "fd_f_2_t": {
+  "es": "La cuenta grande puede ayudar.",
+  "hi": "बड़ा मनका मदद कर सकता है।",
+  "ar": "الخرزة الكبيرة تستطيع المساعدة.",
+  "zh": "大算珠可以帮忙。"
+ },
+ "fd_f_2_b": {
+  "es": "4 es casi 5. 4 = 5 − 1. Así que suma 5 y luego resta 1. Este truco se llama amiguito.",
+  "hi": "4, 5 के लगभग बराबर है। 4 = 5 − 1। तो 5 जोड़ो, फिर 1 घटाओ। इस तरकीब को छोटा दोस्त कहते हैं।",
+  "ar": "4 قريب من 5. 4 = 5 − 1. لذلك أضف 5 ثم اطرح 1. هذه الحيلة اسمها الصديق الصغير.",
+  "zh": "4 很接近 5。4 = 5 − 1。所以先加 5，再减 1。这个小窍门叫“小伙伴”。"
+ },
+ "fd_f_3_t": {
+  "es": "Primero, suma 5.",
+  "hi": "पहले 5 जोड़ो।",
+  "ar": "أولًا، أضف 5.",
+  "zh": "先加 5。"
+ },
+ "fd_f_3_b": {
+  "es": "Toca la cuenta grande.",
+  "hi": "बड़े मनके को टैप करो।",
+  "ar": "انقر على الخرزة الكبيرة.",
+  "zh": "点一下大算珠。"
+ },
+ "fd_f_3_ok": {
+  "es": "¡Ocho!",
+  "hi": "आठ!",
+  "ar": "ثمانية!",
+  "zh": "八！"
+ },
+ "fd_f_3_okb": {
+  "es": "3 + 5 = 8.",
+  "hi": "3 + 5 = 8।",
+  "ar": "3 + 5 = 8.",
+  "zh": "3 + 5 = 8。"
+ },
+ "fd_f_4_t": {
+  "es": "Ahora resta 1.",
+  "hi": "अब 1 घटाओ।",
+  "ar": "الآن اطرح 1.",
+  "zh": "现在减去 1。"
+ },
+ "fd_f_4_b": {
+  "es": "Toca la cuenta azul despierta más baja.",
+  "hi": "सबसे नीचे वाले जागे नीले मनके को टैप करो।",
+  "ar": "انقر على أدنى خرزة زرقاء مستيقظة.",
+  "zh": "点一下最下面醒着的蓝色算珠。"
+ },
+ "fd_f_4_ok": {
+  "es": "¡Siete!",
+  "hi": "सात!",
+  "ar": "سبعة!",
+  "zh": "七！"
+ },
+ "fd_f_4_okb": {
+  "es": "3 + 4 = 7. ¡Y no necesitamos cuentas extra!",
+  "hi": "3 + 4 = 7। और हमें कोई अतिरिक्त मनका नहीं चाहिए था!",
+  "ar": "3 + 4 = 7. ولم نحتج إلى خرزات إضافية!",
+  "zh": "3 + 4 = 7。而且我们不需要额外的算珠！"
+ },
+ "fd_f_5_t": {
+  "es": "Tu respuesta: 2 + 4 = ?",
+  "hi": "तुम्हारा अंदाज़ा: 2 + 4 = ?",
+  "ar": "تخمينك: 2 + 4 = ؟",
+  "zh": "你的猜测：2 + 4 = ？"
+ },
+ "fd_f_5_b": {
+  "es": "Bo tiene 2 y recibe 4 más. Usa el amiguito en tu cabeza.",
+  "hi": "Bo के पास 2 हैं और उसे 4 और मिलते हैं। अपने मन में छोटे दोस्त का इस्तेमाल करो।",
+  "ar": "عند Bo 2 ويحصل على 4 أخرى. استخدم الصديق الصغير في ذهنك.",
+  "zh": "Bo 有 2 颗，又得到 4 颗。用你脑子里的“小伙伴”来算。"
+ },
+ "fd_f_5_okb": {
+  "es": "¡Sí! 2 + 4 = 6.",
+  "hi": "हाँ! 2 + 4 = 6।",
+  "ar": "نعم! 2 + 4 = 6.",
+  "zh": "对！2 + 4 = 6。"
+ },
+ "fd_f_6_t": {
+  "es": "Ahora hazlo: suma 5, resta 1.",
+  "hi": "अब करो: 5 जोड़ो, 1 घटाओ।",
+  "ar": "الآن نفّذها: أضف 5، واطرح 1.",
+  "zh": "现在来做：加 5，减 1。"
+ },
+ "fd_f_6_b": {
+  "es": "Primero la cuenta grande. Luego duerme 1 cuenta azul.",
+  "hi": "पहले बड़ा मनका। फिर 1 नीला मनका सुला दो।",
+  "ar": "الخرزة الكبيرة أولًا. ثم أعد 1 خرزة زرقاء إلى النوم.",
+  "zh": "先拨大算珠，再让 1 颗蓝色算珠回去睡觉。"
+ },
+ "fd_f_6_nudge": {
+  "es": "Dos toques: la cuenta grande y luego una cuenta azul.",
+  "hi": "दो टैप: बड़ा मनका, फिर एक नीला मनका।",
+  "ar": "نقرتان: الخرزة الكبيرة، ثم خرزة زرقاء واحدة.",
+  "zh": "点两下：先大算珠，再一颗蓝色算珠。"
+ },
+ "fd_f_6_ok": {
+  "es": "¡Seis!",
+  "hi": "छह!",
+  "ar": "ستة!",
+  "zh": "六！"
+ },
+ "fd_f_6_okb": {
+  "es": "2 + 4 = 6, con el amiguito del 4.",
+  "hi": "2 + 4 = 6, 4 के छोटे दोस्त के साथ।",
+  "ar": "2 + 4 = 6، بالاستعانة بالصديق الصغير للعدد 4.",
+  "zh": "2 + 4 = 6，用的是 4 的“小伙伴”。"
+ },
+ "fd_f_7_t": {
+  "es": "Los amiguitos suman 5.",
+  "hi": "छोटे दोस्त मिलकर 5 बनाते हैं।",
+  "ar": "الأصدقاء الصغار يُكمّلون إلى 5.",
+  "zh": "小伙伴加起来等于 5。"
+ },
+ "fd_f_7_b": {
+  "es": "1 y 4. 2 y 3. Para sumar 4: suma 5 y resta 1. Para sumar 3: suma 5 y resta 2.",
+  "hi": "1 और 4। 2 और 3। 4 जोड़ने के लिए: 5 जोड़ो, 1 घटाओ। 3 जोड़ने के लिए: 5 जोड़ो, 2 घटाओ।",
+  "ar": "1 و4. 2 و3. لجمع 4: أضف 5 ثم اطرح 1. لجمع 3: أضف 5 ثم اطرح 2.",
+  "zh": "1 和 4，2 和 3。加 4：先加 5，再减 1。加 3：先加 5，再减 2。"
+ },
+ "fd_f_8_t": {
+  "es": "Restar también funciona.",
+  "hi": "घटाना भी इसी तरह होता है।",
+  "ar": "الطرح يعمل بالطريقة نفسها أيضًا.",
+  "zh": "减法也可以这样做。"
+ },
+ "fd_f_8_b": {
+  "es": "5 − 2: sube la cuenta grande y luego despierta 3 cuentas azules.",
+  "hi": "5 − 2: बड़े मनके को ऊपर सरकाओ, फिर 3 नीले मनके जगाओ।",
+  "ar": "5 − 2: ارفع الخرزة الكبيرة، ثم أيقظ 3 خرزات زرقاء.",
+  "zh": "5 − 2：先把大算珠推上去，再让 3 颗蓝色算珠醒过来。"
+ },
+ "fd_f_8_nudge": {
+  "es": "Dos toques: la cuenta grande y luego la tercera cuenta azul.",
+  "hi": "दो टैप: बड़ा मनका, फिर तीसरा नीला मनका।",
+  "ar": "نقرتان: الخرزة الكبيرة، ثم الخرزة الزرقاء الثالثة.",
+  "zh": "点两下：先大算珠，再第三颗蓝色算珠。"
+ },
+ "fd_f_8_ok": {
+  "es": "¡Tres!",
+  "hi": "तीन!",
+  "ar": "ثلاثة!",
+  "zh": "三！"
+ },
+ "fd_f_8_okb": {
+  "es": "5 − 2 = 3. Quita 5 y devuelve 3.",
+  "hi": "5 − 2 = 3। 5 हटाओ, 3 वापस दो।",
+  "ar": "5 − 2 = 3. اطرح 5 وأعد 3.",
+  "zh": "5 − 2 = 3。拿走 5，再放回 3。"
+ },
+ "fd_f_9_t": {
+  "es": "¡Ya conoces a los amiguitos!",
+  "hi": "तुम छोटे दोस्तों को जानते हो!",
+  "ar": "أنت تعرف الأصدقاء الصغار!",
+  "zh": "你已经认识“小伙伴”了！"
+ },
+ "fd_f_9_b": {
+  "es": "Después: ¿qué pasa cuando una varilla entera se llena?",
+  "hi": "अगला सवाल: जब पूरी छड़ भर जाए तो क्या होता है?",
+  "ar": "التالي: ماذا يحدث عندما يمتلئ العمود بالكامل؟",
+  "zh": "接下来：整根杆都满了会怎样？"
+ },
+ "fd_n_1_t": {
+  "es": "8 + 7: la varilla de las unidades está demasiado llena.",
+  "hi": "8 + 7: इकाई वाली छड़ बहुत भर गई है।",
+  "ar": "8 + 7: عمود الآحاد امتلأ أكثر من اللازم.",
+  "zh": "8 + 7：个位杆装不下了。"
+ },
+ "fd_n_1_b": {
+  "es": "Una varilla tiene como máximo 9. ¡Pero 8 + 7 es 15!",
+  "hi": "एक छड़ अधिक-से-अधिक 9 रख सकती है। लेकिन 8 + 7 तो 15 है!",
+  "ar": "العمود الواحد يتسع لـ 9 كحد أقصى. لكن 8 + 7 تساوي 15!",
+  "zh": "一根杆最多放 9。但 8 + 7 等于 15！"
+ },
+ "fd_n_2_t": {
+  "es": "El amigo grande ayuda.",
+  "hi": "बड़ा दोस्त मदद करता है।",
+  "ar": "الصديق الكبير يساعد.",
+  "zh": "大伙伴来帮忙。"
+ },
+ "fd_n_2_b": {
+  "es": "7 es casi 10. 7 = 10 − 3. Suma una decena y luego resta 3.",
+  "hi": "7, 10 के लगभग बराबर है। 7 = 10 − 3। एक दहाई जोड़ो, फिर 3 घटाओ।",
+  "ar": "7 قريب من 10. 7 = 10 − 3. أضف عشرة واحدة ثم اطرح 3.",
+  "zh": "7 很接近 10。7 = 10 − 3。先加一个十，再减 3。"
+ },
+ "fd_n_3_t": {
+  "es": "Primero, resta 3.",
+  "hi": "पहले 3 घटाओ।",
+  "ar": "أولًا، اطرح 3.",
+  "zh": "先减去 3。"
+ },
+ "fd_n_3_b": {
+  "es": "En la varilla de las unidades, toca la cuenta azul más cercana a la barra.",
+  "hi": "इकाई वाली छड़ पर, पट्टी के सबसे पास वाले नीले मनके को टैप करो।",
+  "ar": "على عمود الآحاد، انقر على الخرزة الزرقاء الأقرب إلى الحاجز.",
+  "zh": "在个位杆上，点一下最靠近横梁的蓝色算珠。"
+ },
+ "fd_n_3_ok": {
+  "es": "¡Quedan cinco!",
+  "hi": "पाँच बचे!",
+  "ar": "بقيت خمسة!",
+  "zh": "还剩五！"
+ },
+ "fd_n_3_okb": {
+  "es": "8 − 3 = 5.",
+  "hi": "8 − 3 = 5।",
+  "ar": "8 − 3 = 5.",
+  "zh": "8 − 3 = 5。"
+ },
+ "fd_n_4_t": {
+  "es": "Ahora suma 1 decena.",
+  "hi": "अब 1 दहाई जोड़ो।",
+  "ar": "الآن أضف 1 عشرة.",
+  "zh": "现在加上 1 个十。"
+ },
+ "fd_n_4_b": {
+  "es": "En la varilla de las decenas, la de la izquierda, despierta 1 cuenta.",
+  "hi": "बाईं दहाई वाली छड़ पर 1 मनका जगाओ।",
+  "ar": "على عمود العشرات، وهو الأيسر، أيقظ 1 خرزة.",
+  "zh": "在左边的十位杆上，让 1 颗算珠醒过来。"
+ },
+ "fd_n_4_ok": {
+  "es": "¡Quince!",
+  "hi": "पंद्रह!",
+  "ar": "خمسة عشر!",
+  "zh": "十五！"
+ },
+ "fd_n_4_okb": {
+  "es": "8 + 7 = 15.",
+  "hi": "8 + 7 = 15।",
+  "ar": "8 + 7 = 15.",
+  "zh": "8 + 7 = 15。"
+ },
+ "fd_n_5_t": {
+  "es": "Tu respuesta: 6 + 8 = ?",
+  "hi": "तुम्हारा अंदाज़ा: 6 + 8 = ?",
+  "ar": "تخمينك: 6 + 8 = ؟",
+  "zh": "你的猜测：6 + 8 = ？"
+ },
+ "fd_n_5_b": {
+  "es": "Usa en tu cabeza el amigo grande del 8: suma 10 y resta 2.",
+  "hi": "अपने मन में 8 के बड़े दोस्त का इस्तेमाल करो: 10 जोड़ो, 2 घटाओ।",
+  "ar": "استخدم في ذهنك الصديق الكبير للعدد 8: أضف 10 ثم اطرح 2.",
+  "zh": "用你脑子里 8 的“大伙伴”：加 10，减 2。"
+ },
+ "fd_n_5_okb": {
+  "es": "¡Sí! 6 + 8 = 14.",
+  "hi": "हाँ! 6 + 8 = 14।",
+  "ar": "نعم! 6 + 8 = 14.",
+  "zh": "对！6 + 8 = 14。"
+ },
+ "fd_n_6_t": {
+  "es": "Ahora hazlo con el amigo grande.",
+  "hi": "अब बड़े दोस्त के साथ करो।",
+  "ar": "الآن نفّذها بالصديق الكبير.",
+  "zh": "现在用大伙伴来算。"
+ },
+ "fd_n_6_b": {
+  "es": "Quita 2 de las unidades. Luego suma 1 decena.",
+  "hi": "इकाइयों में से 2 घटाओ। फिर 1 दहाई जोड़ो।",
+  "ar": "اطرح 2 من الآحاد. ثم أضف 1 عشرة.",
+  "zh": "从个位上减去 2，然后加上 1 个十。"
+ },
+ "fd_n_6_nudge": {
+  "es": "Quita 2 de la varilla de las unidades y luego despierta una cuenta en la de las decenas.",
+  "hi": "इकाई वाली छड़ से 2 हटाओ, फिर दहाई वाली छड़ पर एक मनका जगाओ।",
+  "ar": "أزل 2 من عمود الآحاد، ثم أيقظ خرزة على عمود العشرات.",
+  "zh": "从个位杆上去掉 2，然后在十位杆上让一颗算珠醒过来。"
+ },
+ "fd_n_6_ok": {
+  "es": "¡Catorce!",
+  "hi": "चौदह!",
+  "ar": "أربعة عشر!",
+  "zh": "十四！"
+ },
+ "fd_n_6_okb": {
+  "es": "6 + 8 = 14.",
+  "hi": "6 + 8 = 14।",
+  "ar": "6 + 8 = 14.",
+  "zh": "6 + 8 = 14。"
+ },
+ "fd_n_7_t": {
+  "es": "Los amigos grandes suman 10.",
+  "hi": "बड़े दोस्त मिलकर 10 बनाते हैं।",
+  "ar": "الأصدقاء الكبار يُكمّلون إلى 10.",
+  "zh": "大伙伴加起来等于 10。"
+ },
+ "fd_n_7_b": {
+  "es": "1 y 9. 2 y 8. 3 y 7. 4 y 6. 5 y 5.",
+  "hi": "1 और 9। 2 और 8। 3 और 7। 4 और 6। 5 और 5।",
+  "ar": "1 و9. 2 و8. 3 و7. 4 و6. 5 و5.",
+  "zh": "1 和 9，2 和 8，3 和 7，4 和 6，5 和 5。"
+ },
+ "fd_n_8_t": {
+  "es": "¡Puedes pasar a la siguiente columna!",
+  "hi": "तुम अगले स्तंभ में जा सकते हो!",
+  "ar": "يمكنك الانتقال إلى العمود التالي!",
+  "zh": "你可以进位到下一列了！"
+ },
+ "fd_n_8_b": {
+  "es": "Después: restar cuando no alcanzan las unidades.",
+  "hi": "अगला: जब इकाइयाँ कम पड़ें तो घटाना।",
+  "ar": "التالي: الطرح عندما لا تكفي الآحاد.",
+  "zh": "接下来：个位不够减时怎么办。"
+ },
+ "fd_r_1_t": {
+  "es": "12 − 8: no hay suficientes unidades.",
+  "hi": "12 − 8: इकाइयाँ काफ़ी नहीं हैं।",
+  "ar": "12 − 8: الآحاد غير كافية.",
+  "zh": "12 − 8：个位不够减。"
+ },
+ "fd_r_1_b": {
+  "es": "Bo tiene 1 decena y 2 unidades. ¡Pero queremos quitar 8!",
+  "hi": "Bo के पास 1 दहाई और 2 इकाई हैं। लेकिन हमें 8 घटाने हैं!",
+  "ar": "عند Bo 1 عشرة و2 آحاد. لكننا نريد أن نطرح 8!",
+  "zh": "Bo 有 1 个十和 2 个一。但我们要减去 8！"
+ },
+ "fd_r_2_t": {
+  "es": "Toma prestada una decena.",
+  "hi": "एक दहाई उधार लो।",
+  "ar": "استلف عشرة.",
+  "zh": "借一个十。"
+ },
+ "fd_r_2_b": {
+  "es": "−8 = −10 + 2. Quita una decena entera y luego devuelve 2.",
+  "hi": "−8 = −10 + 2। एक पूरी दहाई हटाओ, फिर 2 वापस दो।",
+  "ar": "−8 = −10 + 2. أزل عشرة كاملة، ثم أعد 2.",
+  "zh": "−8 = −10 + 2。先拿走一个完整的十，再放回 2。"
+ },
+ "fd_r_3_t": {
+  "es": "Primero, quita 1 decena.",
+  "hi": "पहले 1 दहाई हटाओ।",
+  "ar": "أولًا، اطرح 1 عشرة.",
+  "zh": "先拿走 1 个十。"
+ },
+ "fd_r_3_b": {
+  "es": "Toca la cuenta de la varilla de las decenas.",
+  "hi": "दहाई वाली छड़ के मनके को टैप करो।",
+  "ar": "انقر على الخرزة الموجودة على عمود العشرات.",
+  "zh": "点一下十位杆上的算珠。"
+ },
+ "fd_r_3_ok": {
+  "es": "¡Se fue la decena!",
+  "hi": "दहाई हट गई!",
+  "ar": "ذهبت العشرة!",
+  "zh": "十不见了！"
+ },
+ "fd_r_3_okb": {
+  "es": "12 − 10 = 2.",
+  "hi": "12 − 10 = 2।",
+  "ar": "12 − 10 = 2.",
+  "zh": "12 − 10 = 2。"
+ },
+ "fd_r_4_t": {
+  "es": "Ahora devuelve 2.",
+  "hi": "अब 2 वापस दो।",
+  "ar": "الآن أعد 2.",
+  "zh": "现在放回 2。"
+ },
+ "fd_r_4_b": {
+  "es": "Despierta 2 cuentas más en la varilla de las unidades.",
+  "hi": "इकाई वाली छड़ पर 2 और मनके जगाओ।",
+  "ar": "أيقظ 2 خرزة أخرى على عمود الآحاد.",
+  "zh": "在个位杆上再让 2 颗算珠醒过来。"
+ },
+ "fd_r_4_ok": {
+  "es": "¡Cuatro!",
+  "hi": "चार!",
+  "ar": "أربعة!",
+  "zh": "四！"
+ },
+ "fd_r_4_okb": {
+  "es": "12 − 8 = 4.",
+  "hi": "12 − 8 = 4।",
+  "ar": "12 − 8 = 4.",
+  "zh": "12 − 8 = 4。"
+ },
+ "fd_r_5_t": {
+  "es": "Tu respuesta: 15 − 7 = ?",
+  "hi": "तुम्हारा अंदाज़ा: 15 − 7 = ?",
+  "ar": "تخمينك: 15 − 7 = ؟",
+  "zh": "你的猜测：15 − 7 = ？"
+ },
+ "fd_r_5_b": {
+  "es": "Toma prestada una decena en tu cabeza: quita 10 y devuelve 3.",
+  "hi": "अपने मन में एक दहाई उधार लो: 10 हटाओ, 3 वापस दो।",
+  "ar": "استلف عشرة في ذهنك: اطرح 10 وأعد 3.",
+  "zh": "在脑子里借一个十：减去 10，再放回 3。"
+ },
+ "fd_r_5_okb": {
+  "es": "¡Sí! 15 − 7 = 8.",
+  "hi": "हाँ! 15 − 7 = 8।",
+  "ar": "نعم! 15 − 7 = 8.",
+  "zh": "对！15 − 7 = 8。"
+ },
+ "fd_r_6_t": {
+  "es": "Ahora hazlo: quita una decena y devuelve 3.",
+  "hi": "अब करो: एक दहाई हटाओ, 3 वापस दो।",
+  "ar": "الآن نفّذها: اطرح عشرة، وأعد 3.",
+  "zh": "现在来做：拿走一个十，再放回 3。"
+ },
+ "fd_r_6_b": {
+  "es": "Primero la varilla de las decenas. Luego la de las unidades.",
+  "hi": "पहले दहाई वाली छड़, फिर इकाई वाली छड़।",
+  "ar": "عمود العشرات أولًا، ثم عمود الآحاد.",
+  "zh": "先操作十位杆，再操作个位杆。"
+ },
+ "fd_r_6_nudge": {
+  "es": "Duerme la cuenta de las decenas y luego despierta 3 cuentas más en la varilla de las unidades.",
+  "hi": "दहाई वाले मनके को सुला दो, फिर इकाई वाली छड़ पर 3 और मनके जगाओ।",
+  "ar": "أعد خرزة العشرات إلى النوم، ثم أيقظ 3 خرزات أخرى على عمود الآحاد.",
+  "zh": "让十位杆上的算珠回去睡觉，然后在个位杆上再让 3 颗算珠醒过来。"
+ },
+ "fd_r_6_ok": {
+  "es": "¡Ocho!",
+  "hi": "आठ!",
+  "ar": "ثمانية!",
+  "zh": "八！"
+ },
+ "fd_r_6_okb": {
+  "es": "15 − 7 = 8.",
+  "hi": "15 − 7 = 8।",
+  "ar": "15 − 7 = 8.",
+  "zh": "15 − 7 = 8。"
+ },
+ "fd_r_7_t": {
+  "es": "Pedir prestado es el amigo grande al revés.",
+  "hi": "उधार लेना बड़े दोस्त को उल्टा करने जैसा है।",
+  "ar": "الاستلاف هو الصديق الكبير بالعكس.",
+  "zh": "借位就是大伙伴倒过来用。"
+ },
+ "fd_r_7_b": {
+  "es": "Quita 10 y luego devuelve lo que no necesitabas.",
+  "hi": "10 हटाओ, फिर वह वापस दो जिसकी ज़रूरत नहीं थी।",
+  "ar": "اطرح 10، ثم أعد ما لم تكن تحتاجه.",
+  "zh": "先减去 10，再放回多减的那部分。"
+ },
+ "fd_tryAnother": {
+  "es": "Prueba con otra.",
+  "hi": "एक और आज़माओ।",
+  "ar": "جرّب واحدًا آخر.",
+  "zh": "再试一个。"
+ },
+ "fd_almost": {
+  "es": "¡Casi! El ábaco muestra {v}.",
+  "hi": "लगभग! अबेकस {v} दिखा रहा है।",
+  "ar": "قريب! المعداد يُظهر {v}.",
+  "zh": "差一点！算盘显示的是 {v}。"
+ },
+ "fd_lets": {
+  "es": "Vamos",
+  "hi": "चलो शुरू करें",
+  "ar": "هيا بنا",
+  "zh": "开始吧"
+ },
+ "fd_great": {
+  "es": "Continuar",
+  "hi": "जारी रखो",
+  "ar": "متابعة",
+  "zh": "继续"
  }
 };

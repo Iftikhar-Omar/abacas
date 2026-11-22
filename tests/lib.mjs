@@ -92,7 +92,7 @@ async function practiceRound(page, log) {
   if (/^Show /.test(q)) { await buildNumber(page, q.replace(/^Show\s+/, '').replace(/\s+on the abacus$/, '')); await page.waitForTimeout(300); }
   else {
     let expected;
-    if (/^What number/.test(q)) expected = await page.evaluate(() => document.querySelector('#lp-total')?.textContent);
+    if (/^What number/.test(q)) expected = await page.evaluate(() => window.__solve(document.querySelector('.lp-question').dataset.read || '0'));
     else {
       const app = await page.evaluate((e) => window.__solve(e.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-')), q);
       const js = jsEval(q);

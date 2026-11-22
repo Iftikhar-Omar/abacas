@@ -7,6 +7,7 @@ import { spawnSync } from 'node:child_process';
 const steps = [
   ['lint', 'npx', ['eslint', 'src', 'tests', 'tools']],
   ['build', 'node', ['tools/build.mjs']],
+  ['audit', 'node', ['tests/audit.mjs']],
   ['lessons', 'node', ['tests/sweep-lessons.mjs']],
   ['flows', 'node', ['tests/flows.mjs']],
 ];

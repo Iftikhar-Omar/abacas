@@ -232,6 +232,16 @@ export function linear(node) {
   throw Error("nonlinear");
 }
 export var notation = (op) => ({ "*": "\xD7", "/": "\xF7", "-": "\u2212", "+": "+", "^": "^" })[op] || op;
+/** Friendly input: "8 x 7", "12,50", "1 000", unicode signs and stray spaces all mean what a learner thinks. */
+export function cleanInput(raw) {
+  let s = String(raw ?? "").trim();
+  s = s.replace(/[\u2212\u2013\u2014]/g, "-").replace(/[\u00D7\u22C5\u00B7]/g, "*").replace(/\u00F7/g, "/");
+  s = s.replace(/(\d)\s*[xX]\s*(?=[\d(])/g, "$1*");
+  s = s.replace(/(\d)[\s\u202F\u00A0](?=\d{3}\b)/g, "$1");
+  if (!/\d,\d{1,2}\s*[+\-*/]/.test(s.replace(/\d,\d{3}\b/g, "")) && !/,.*,/.test(s) || /\d,\d/.test(s) && !/\d,\d{3}\b/.test(s)) s = s.replace(/(\d),(\d)/g, "$1.$2");
+  return s;
+}
+
 export function solve(source) {
   const tree = parse(source);
   if (tree.op === "sqrt") {

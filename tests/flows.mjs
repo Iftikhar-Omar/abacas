@@ -104,6 +104,35 @@ for (const lang of ['bn', 'es', 'hi', 'ar', 'zh']) {
   await browser.close();
 }
 
+/* ---- Hand-crafted concept lessons: real taps ---- */
+{
+  const { browser, page, errors } = await launch({ reduced: true });
+  const bead = (idx, kind = 'low', col = null) => page.click(`#lp ${col === null ? '' : `.sb-rod:nth-of-type(${col + 1}) ~ `}.sb-bead[data-kind=${kind}][data-idx="${idx}"]${col === null ? '' : `[data-col="${col}"]`}`);
+  const next = async () => { await page.click('[data-lp=scriptNext]'); await page.waitForTimeout(30); };
+  const pick = async (v) => { await page.click(`.lp-choice[data-v="${v}"]`); await next(); };
+  // moves
+  await page.evaluate(() => window.__openLesson('normal-moves'));
+  await next(); await bead(3); await next(); await bead(3); await next(); await bead(1); await next(); await pick(4); await bead(3); await next(); await next();
+  check((await stage(page)) === 'Practice', 'moves lesson: real taps reach practice');
+  // five (little friends)
+  await page.evaluate(() => window.__openLesson('normal-five'));
+  await next(); await next(); await bead(0, 'top'); await next(); await bead(2); await next(); await pick(6);
+  await bead(0, 'top'); await bead(1); await next(); await next(); await bead(0, 'top'); await bead(2); await next(); await next();
+  check((await stage(page)) === 'Practice', 'five lesson: real taps (big bead then take away) reach practice');
+  // ten (big friends), 2 sticks: col 0 = tens, col 1 = ones
+  await page.evaluate(() => window.__openLesson('normal-ten'));
+  await next(); await next();
+  await bead(0, 'low', 1); await next();
+  await bead(0, 'low', 0); await next();
+  await pick(14);
+  await bead(0, 'top', 1); await bead(3, 'low', 1); await bead(0, 'low', 0);
+  check(!!(await page.$('[data-lp=scriptNext]')), 'ten lesson: 6 + 8 reachable with big-friend taps');
+  await next(); await next(); await next();
+  check((await stage(page)).startsWith('Practice'), 'ten lesson: reaches practice (' + (await stage(page)) + ')');
+  check(errors.length === 0, 'concept lessons: no console errors ' + errors.join('|'));
+  await browser.close();
+}
+
 /* ---- Keyboard only ---- */
 {
   const { browser, page, errors } = await launch({ reduced: true });

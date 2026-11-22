@@ -13,6 +13,20 @@ import { stepText } from './i18n.js';
 import { P } from './player-i18n.js';
 import { snapshotToDigits } from './soroban.js';
 
+/**
+ * Can the abacus honestly show this calculation? Not when it involves fractions, percentages, algebra,
+ * roots, or numbers below zero (a soroban shows amounts, not minus signs).
+ */
+export function isBoardable(trace) {
+  const src = String(trace.source);
+  if (!trace.steps.some((s) => s.after.raw !== null && s.after.raw !== undefined)) return false;
+  if (trace.steps.some((s) => String(s.after.value).startsWith("-") || String(s.before.value).startsWith("-"))) return false;
+  if (/(^|[(*\/+\-^])\s*-/.test(src)) return false;
+  if ((src.match(/\//g) || []).length >= 2 && /\d\/\d/.test(src) && !/^[\d.]+\/[\d.]+$/.test(src)) return false;
+  if (/[%a-z=]/i.test(src)) return false;
+  return true;
+}
+
 const BOARD_KINDS = new Set(["lowerOn", "lowerOff", "upperOn", "upperOff"]);
 const times = "×";
 const minus = "−";
@@ -31,6 +45,7 @@ const bottom = (n, lang) => P(n === 1 ? "bottomBead_one" : "bottomBead_other", l
 /** Format a number in the same style used across the app (× and −). */
 let fractionStyle = false;
 /** Fraction lessons show 1/4 as a fraction; everywhere else "/" is a division sign. */
+export const isFractionStyle = () => fractionStyle;
 export const setFractionStyle = (on) => {
   fractionStyle = !!on;
 };
@@ -67,6 +82,8 @@ export function buildScenes(trace, lang, layout) {
     };
   };
 
+  // calculations the abacus can't honestly show are told "on paper": keep only the maths lines
+  const paper = !isBoardable(trace);
   let i = 0;
   let pendingBig = null; // {kind:'big'|'borrow', digit, complement}
   while (i < steps.length) {
@@ -75,8 +92,25 @@ export function buildScenes(trace, lang, layout) {
     const p = s.params || {};
     const place = p.place;
 
+    if (paper && (BOARD_KINDS.has(s.kind) || ["clear", "zero", "operation", "makeTen", "borrowTen"].includes(s.kind))) {
+      i++;
+      continue;
+    }
+
+    // the engine ends some calculations by clearing the board and building the answer again: say so once
+    if (s.kind === "clear" && i > 0 && steps.slice(i).every((x) => x.kind === "clear" || BOARD_KINDS.has(x.kind))) {
+      const last = steps.length - 1;
+      const tail = mk(i, last, { type: "result", title: P("sc_result", lang, { r: pretty(trace.result) }), body: P("sc_resultBuild", lang), math: pretty(trace.result) });
+      const before = [...scenes].reverse().find((x) => x.to);
+      if (before) tail.from = before.to;
+      tail.boardable = !!(tail.from && tail.to);
+      tail.changes = false;
+      scenes.push(tail);
+      break;
+    }
     if (s.kind === "clear") {
-      scenes.push(mk(i, i, { type: "clear", title: P("sc_clear", lang), body: P("sc_clearBody", lang), math: "0" }));
+      const again = i > 0;
+      scenes.push(mk(i, i, { type: "clear", title: P(again ? "sc_clearAgain" : "sc_clear", lang), body: P(again ? "sc_clearAgainBody" : "sc_clearBody", lang), math: "0" }));
       i++;
       continue;
     }
@@ -150,6 +184,10 @@ export function buildScenes(trace, lang, layout) {
       continue;
     }
 
+    if (s.kind === "operationDone" && paper && steps.slice(i + 1).some((x) => x.kind === "operationDone")) {
+      i++;
+      continue;
+    }
     if (s.kind === "operationDone") {
       const more = steps.slice(i + 1).some((x) => x.kind === "operation");
       scenes.push(
@@ -287,7 +325,7 @@ const fmt = (n) => (Number.isInteger(n) ? String(n) : String(+n.toFixed(6)));
 export function taskScenes(scenes) {
   const hasOperation = scenes.some((s) => s.type === "operation");
   // examples that are just a number ("show 12") are practised by building the number itself
-  return scenes.filter((s) => s.changes && (hasOperation ? !["set", "clear"].includes(s.type) : s.type === "set"));
+  return scenes.filter((s) => s.changes && s.type !== "result" && (hasOperation ? !["set", "clear"].includes(s.type) : s.type === "set"));
 }
 
 /** Plain-English wording for the steps that happen "on paper" rather than on the abacus. */

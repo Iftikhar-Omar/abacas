@@ -240,3 +240,8 @@ html[data-surface="orchid"] {
 html[data-theme="dark"][data-surface] {
   --sb-inner: #202e48;
 }
+
+.soroban.no-digits .sb-digit,
+.soroban.no-digits .sb-digit-bg {
+  visibility: hidden;
+}

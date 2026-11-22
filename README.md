@@ -48,6 +48,8 @@ css/
 src/
   app.js              pages (Learn, Solve, Practice, Progress, Account), dialogs, events
   player.js           lesson player: learn / watch / try / practice / unit check / solution
+  paper.js, fractions.js, solutions.js   hand-written walkthroughs for ×, ÷, brackets, powers, roots, signs, percent and fractions (picture bars)
+  foundations.js      child-first scripted lessons (Bo, big bead, ones/tens, add/take, little friends, big friends, borrowing)
   coach.js            turns engine steps into plain-language scenes (little/big friends, borrowing)
   explainers.js       illustrated ideas (scene lists played on the board)
   soroban.js          SVG abacus (tap, keyboard, highlights, animation)
@@ -62,6 +64,7 @@ tests/                lib.mjs, smoke.mjs, sweep-lessons.mjs, flows.mjs, tour.mjs
 
 ## Tests
 
+* `audit.mjs` (no browser) checks ~2,000 expressions: every lesson example/practice item plus random sums. It proves answers match JavaScript's arithmetic, every scene is well formed, every bead move a learner is asked to make is reachable by real taps (breadth-first search over the tap rules), and Solve-page input forms are understood.
 * `sweep-lessons.mjs` opens **all 93 lessons**, plays them through with correct answers (keyboard on the board,
   typed answers), and cross-checks the engine's answers against JavaScript arithmetic.
 * `flows.mjs` covers the Solve page, unit check, mental gym, all six languages (incl. right-to-left),

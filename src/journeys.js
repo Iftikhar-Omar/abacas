@@ -38,7 +38,7 @@ export function createNormalLessons(catalog, ideaFor) {
       "Add some, take some",
       "\u0995\u09BF\u099B\u09C1 \u09A6\u09BF\u0987, \u0995\u09BF\u099B\u09C1 \u09B8\u09B0\u09BE\u0987",
       "direct",
-      ["count", "take"],
+      ["count"],
       ["count", "take", "number-four"],
       5
     ],
@@ -47,7 +47,7 @@ export function createNormalLessons(catalog, ideaFor) {
       "Make friends with five",
       "\u09AA\u09BE\u0981\u099A\u09C7\u09B0 \u09B8\u09BE\u09B9\u09BE\u09AF\u09CD\u09AF \u09A8\u09BF\u0987",
       "five",
-      ["five-two", "five-back"],
+      ["five-two"],
       ["five-two", "five-back", "five-mix"],
       7
     ],
@@ -56,7 +56,7 @@ export function createNormalLessons(catalog, ideaFor) {
       "Cross into the next column",
       "\u09A6\u09B6\u09C7\u09B0 \u0998\u09B0\u09C7 \u09AF\u09BE\u0987",
       "ten",
-      ["ten", "ten-friends"],
+      ["ten-friends"],
       ["ten", "ten-friends", "ten-five"],
       7
     ],
@@ -65,7 +65,7 @@ export function createNormalLessons(catalog, ideaFor) {
       "Bring a ten back",
       "\u09A6\u09B6 \u09AD\u09C7\u0999\u09C7 \u09AC\u09BF\u09AF\u09BC\u09CB\u0997 \u0995\u09B0\u09BF",
       "borrow",
-      ["borrow", "subtract"],
+      ["subtract"],
       ["borrow", "subtract", "ten-mix"],
       7
     ],

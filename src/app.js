@@ -6,7 +6,7 @@ import { applyPrefs, readPrefs, sanitizePrefs, st, writePrefs } from './studio.j
 import { extraConcepts, languages, skillName, tr } from './i18n.js';
 import { allLessons, concept, freshProgress, lessons, normalLessons, recordAttempt, units } from './curriculum.js';
 import { config } from './config.js';
-import { answerEquals, evaluate, solve } from './engine.js';
+import { answerEquals, cleanInput, evaluate, solve } from './engine.js';
 import { Playback, makeChallenge, presets, suggestNext, validateConfig } from './gym.js';
 import { journeyCopy } from './journey-i18n.js';
 import { captureFocus, captureFormDrafts, focusWorkspace, restoreFocus, restoreFormDrafts } from './ui.js';
@@ -338,7 +338,8 @@ function renderSolver() {
   const examples = ["82 \u2212 56", "999 + 1", "12.50 \u2212 3.75", "23 \xD7 14", "156 \xF7 12", "1/3 + 1/6", "\u22123 \xD7 4", "2*x+3=15"];
   $("#main").innerHTML = `<div class="page-heading"><div><p class="eyebrow">${P("solveEyebrow", lang)}</p><h1>${T("solver")}</h1></div></div><section class="solve-card"><p class="solve-lead">${P("solveLead", lang)}</p><form id="solver-form" class="solver-form"><label for="expression" class="sr-only">${T("equation")}</label><div class="solver-input-row"><input id="expression" name="expression" value="${esc(state.solverDraft)}" placeholder="82 \u2212 56" aria-describedby="solver-error" aria-invalid="${!!state.solverError}" dir="ltr" autocomplete="off" spellcheck="false" maxlength="2000" enterkeyhint="go"><button class="button primary" type="submit">${T("solve")}</button></div><div class="op-keys" role="group" aria-label="${P("solveKeys", lang)}">${ops.map((k) => `<button type="button" class="button secondary" data-action="opkey" data-key="${esc(k)}" aria-label="${esc(k)}">${esc(k)}</button>`).join("")}<button type="button" class="button text-button" data-action="clearSolver">${P("clear", lang)}</button></div><div id="solver-error" class="form-error" role="alert">${esc(state.solverError)}</div></form><h2 class="solve-sub">${P("tryExample", lang)}</h2><div class="example-choices">${examples.map((e) => btn(esc(e), "example", "secondary", `data-expression="${esc(e)}"`)).join("")}</div></section>`;
 }
-function solveInput(expr, at = 0, fromElsewhere = false) {
+function solveInput(rawExpr, at = 0, fromElsewhere = false) {
+  const expr = cleanInput(rawExpr);
   try {
     const trace = solve(expr);
     if (!fromElsewhere) {

@@ -230,6 +230,11 @@ export class Soroban {
     this.svg.querySelectorAll(".sb-label").forEach((n, c) => n.classList.toggle("hl", (spec.labels || []).includes(c)));
   }
 
+  /** Hide the digit readouts above the sticks (used by "what number is this?" questions). */
+  hideDigits(on) {
+    this.svg.classList.toggle("no-digits", !!on);
+  }
+
   clearHints() {
     this.svg.querySelector(".sb-bar")?.classList.remove("hl");
     this.svg.querySelectorAll(".sb-label.hl").forEach((n) => n.classList.remove("hl"));

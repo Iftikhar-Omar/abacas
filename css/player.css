@@ -806,3 +806,38 @@ body .lp > main.lp-main {
 .lp-stage.done .lp-trophy svg {
   width: min(380px, 80%);
 }
+
+/* ---------- fraction bars ---------- */
+.frbars {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px 22px;
+  margin-bottom: 14px;
+}
+.frcard {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+}
+.frcard b {
+  font-size: 1.25rem;
+  color: var(--ink);
+}
+.frbar {
+  display: flex;
+  gap: 3px;
+  padding: 4px;
+  border: 3px solid var(--sb-frame, #25356e);
+  border-radius: 12px;
+  background: var(--card);
+}
+.frbar i {
+  width: clamp(14px, 3.6vw, 30px);
+  height: 34px;
+  border-radius: 6px;
+  background: var(--soft);
+}
+.frbar i.on {
+  background: var(--sb-top, #e8920f);
+}
