@@ -6,13 +6,14 @@
 import { launch } from './lib.mjs';
 
 let bad = 0;
+const latin = (t) => String(t ?? '').replace(/[\u09E6-\u09EF]/g, (d) => String(d.charCodeAt(0) - 0x09E6)); // Bengali digits -> 0-9
 const check = (ok, msg) => { if (!ok) { bad++; console.log('FAIL', msg); } };
 
 for (const lang of ['en', 'bn', 'es', 'hi', 'ar', 'zh']) {
   for (const vp of [{ width: 1280, height: 800 }, { width: 380, height: 760 }]) {
     const { browser, page, errors } = await launch({ ...vp, lang, reduced: true });
     const home = await page.evaluate(() => document.querySelector('.hero')?.innerText || '');
-    check(/17/.test(home), `${lang}: home shows 17 lessons`);
+    check(/17/.test(latin(home)), `${lang}: home shows 17 lessons`);
     check(!!(await page.$('.hero-chip.first')), `${lang}: first visit labelled "Start here"`);
     await page.evaluate(() => window.__openLesson('normal-intro'));
     await page.waitForSelector('#lp .lp-bubble');
@@ -37,6 +38,7 @@ for (const lang of ['en', 'bn', 'es', 'hi', 'ar', 'zh']) {
     await page.click('#lp [data-lp="exit"]');
     await page.waitForSelector('.hero');
     const after = await page.evaluate(() => ({ chip: document.querySelector('.hero-chip')?.textContent, where: document.querySelector('.hero-where')?.textContent, cta: document.querySelector('.hero-cta')?.textContent.trim(), done: document.querySelectorAll('.path-strip .node.done').length, cur: document.querySelector('.path-strip .node.current')?.textContent.trim() }));
+    after.cur = latin(after.cur);
     check(after.done === 1 && after.cur === '2', `${lang}: path shows lesson 1 done, 2 current (${JSON.stringify(after)})`);
     check(after.chip && !after.cta.includes('Start') || lang !== 'en', `${lang}: CTA changed after progress`);
     if (lang === 'en') check(after.chip === 'Current lesson' && after.cta === 'Continue' && after.where === 'Lesson 2 of 17', `en: hero labels ${JSON.stringify(after)}`);
