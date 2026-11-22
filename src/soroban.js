@@ -117,6 +117,9 @@ export class Soroban {
     // frame
     el("rect", { x: PAD - 8, y: Y0, width: w - PAD * 2 + 16, height: Y1 - Y0, rx: 12, class: "sb-frame" }, svg);
     el("rect", { x: PAD - 8, y: BAR - 5, width: w - PAD * 2 + 16, height: 10, class: "sb-bar" }, svg);
+    // the two decks (invisible unless highlighted by the introduction)
+    el("rect", { x: PAD - 4, y: Y0 + 4, width: w - PAD * 2 + 8, height: BAR - 5 - Y0 - 4, rx: 6, class: "sb-deck sb-deck-up" }, svg);
+    el("rect", { x: PAD - 4, y: BAR + 5, width: w - PAD * 2 + 8, height: Y1 - 4 - BAR - 5, rx: 6, class: "sb-deck sb-deck-low" }, svg);
     // rods
     this.rodEls = [];
     for (let c = 0; c < this.rods; c++) {
@@ -128,7 +131,8 @@ export class Soroban {
     }
     // unit-rod dot (soroban convention: the rod that holds the ones)
     const unitCol = this.rods - 1 - this.scale;
-    if (unitCol >= 0) el("circle", { cx: PAD + GAP * unitCol + GAP / 2, cy: BAR, r: 3.4, class: "sb-unit-dot" }, svg);
+    // pointer dots: one on the ones rod and one on every third rod to its left (like the commas in 1,000)
+    for (let c = unitCol, k = 0; c >= 0; c -= 3, k++) el("circle", { cx: PAD + GAP * c + GAP / 2, cy: BAR, r: 3.4, class: `sb-unit-dot${k ? " minor" : ""}` }, svg);
 
     // digit readouts + labels
     this.digitEls = [];
@@ -228,8 +232,31 @@ export class Soroban {
     for (const c of spec.cols || []) this.rodEls[c]?.classList.add("focus-rod");
     this.svg.querySelector(".sb-bar")?.classList.toggle("hl", !!spec.bar);
     this.svg.querySelector(".sb-frame")?.classList.toggle("hl", !!spec.frame);
-    this.svg.querySelector(".sb-unit-dot")?.classList.toggle("hl", !!spec.dot);
+    this.svg.querySelectorAll(".sb-unit-dot").forEach((n) => n.classList.toggle("hl", !!spec.dot));
+    this.svg.querySelector(".sb-deck-up")?.classList.toggle("hl", spec.deck === "upper" || spec.deck === "both");
+    this.svg.querySelector(".sb-deck-low")?.classList.toggle("hl", spec.deck === "lower" || spec.deck === "both");
     this.svg.querySelectorAll(".sb-label").forEach((n, c) => n.classList.toggle("hl", (spec.labels || []).includes(c)));
+  }
+
+  /**
+   * The SVG element for a named part, so callouts and the camera can point at it:
+   * frame, bar, dot (ones rod), dots (all), deckU, deckL, rod:<col>, top:<col>, low:<col>:<i>
+   */
+  part(name) {
+    const [kind, a, b] = String(name).split(":");
+    const q = (sel) => this.svg.querySelector(sel);
+    switch (kind) {
+      case "frame": return q(".sb-frame");
+      case "bar": return q(".sb-bar");
+      case "dot": return q(".sb-unit-dot");
+      case "dotMinor": return q(".sb-unit-dot.minor");
+      case "deckU": return q(".sb-deck-up");
+      case "deckL": return q(".sb-deck-low");
+      case "rod": return this.rodEls[Number(a)]?.querySelector(".sb-rod-line");
+      case "top": return this.beads[Number(a)]?.top;
+      case "low": return this.beads[Number(a)]?.lows[Number(b ?? 0)];
+      default: return null;
+    }
   }
 
   /** Hide the digit readouts above the sticks (used by "what number is this?" questions). */

@@ -1,7 +1,7 @@
 // File: intro.mjs
 // Directory: tests/
 // Tests the "What is an abacus?" introduction and the home "Current lesson" / "Continue" labels:
-// 16 slides in every language (no raw keys or {placeholders}), nothing wider than the screen (RTL included),
+// every slide in every language (no raw keys or {placeholders}), nothing wider than the screen (RTL included),
 // the lesson counts as learned afterwards, and the home page then says "Continue" with lesson 2 as current.
 import { launch } from './lib.mjs';
 
@@ -16,18 +16,20 @@ for (const lang of ['en', 'bn', 'es', 'hi', 'ar', 'zh']) {
     check(!!(await page.$('.hero-chip.first')), `${lang}: first visit labelled "Start here"`);
     await page.evaluate(() => window.__openLesson('normal-intro'));
     await page.waitForSelector('#lp .lp-bubble');
-    for (let i = 1; i <= 16; i++) {
+    const total = Number(await page.$eval('#lp .lp-step', (n) => n.textContent.split('/')[1]));
+    check(total >= 16, `${lang}: intro has ${total} slides`);
+    for (let i = 1; i <= total; i++) {
       const info = await page.evaluate(() => ({
         text: document.querySelector('#lp .lp-bubble')?.innerText || '',
         step: document.querySelector('#lp .lp-step')?.textContent,
         art: document.querySelector('#lp .lp-art') && !document.querySelector('#lp .lp-art').hidden ? document.querySelector('#lp .lp-art').innerText : '',
-        wide: document.documentElement.scrollWidth > innerWidth + 1 || [...document.querySelectorAll('#lp .lp-bubble *, #lp .lp-art *, #lp .lp-stage')].some((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && (r.right > innerWidth + 1 || r.left < -1); }),
+        wide: document.documentElement.scrollWidth > innerWidth + 1 || document.querySelector('#lp .lp-coach').scrollWidth > document.querySelector('#lp .lp-coach').clientWidth + 1 || [...document.querySelectorAll('#lp .lp-bubble *, #lp .lp-art *, #lp .lp-stage')].some((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && (r.right > innerWidth + 1 || r.left < -1); }),
       }));
       const all = info.text + info.art;
-      check(info.step === `${i}/16`, `${lang} ${vp.width}: step ${i} label ${info.step}`);
+      check(info.step === `${i}/${total}`, `${lang} ${vp.width}: step ${i} label ${info.step}`);
       check(!/\{\w+\}|undefined|\bin_[a-z0-9_]+\b/.test(all), `${lang} ${vp.width}: slide ${i} leaks a raw key/placeholder: ${all.slice(0, 80)}`);
       check(!info.wide, `${lang} ${vp.width}: slide ${i} overflows horizontally`);
-      if (i < 16) await page.click('#lp [data-lp="next"]');
+      if (i < total) await page.click('#lp [data-lp="next"]');
     }
     await page.click('#lp [data-lp="next"]');
     await page.waitForSelector('#lp .lp-sticker');

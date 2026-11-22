@@ -72,33 +72,81 @@ const SLIDE = (n, o = {}, lang) => ({
   boardable: true,
 });
 
-export function introExplainer(lang) {
-  const E = [0, 0, 0];
-  const parts = [
-    [P("in_t_frame", lang), P("in_t_frame_b", lang)],
-    [P("in_t_rod", lang), P("in_t_rod_b", lang)],
-    [P("in_t_beam", lang), P("in_t_beam_b", lang)],
-    [P("in_t_heaven", lang), P("in_t_heaven_b", lang)],
-    [P("in_t_earth", lang), P("in_t_earth_b", lang)],
+const callout = (part, side, text, o = {}) => ({ part, side, text, ...o });
+
+/** The labelled map of the whole abacus (the same labels the teacher's hand-drawn sketch uses). */
+function mapLabels(lang) {
+  const t = (k) => P(k, lang);
+  return [
+    callout("deckU", "l", t("in_c_upperDeck"), { at: [0.03, 0.5], tone: "up" }),
+    callout("frame", "l", t("in_c_frame"), { at: [0, 0.5] }),
+    callout("deckL", "l", t("in_c_lowerDeck"), { at: [0.03, 0.5], tone: "low" }),
+    callout("top:3", "r", t("in_c_upper"), { tone: "up" }),
+    callout("bar", "r", t("in_c_bar"), { at: [1, 0.5] }),
+    callout("low:3:2", "r", t("in_c_lower"), { tone: "low" }),
+    callout("rod:1", "b", t("in_c_hund")),
+    callout("rod:2", "b", t("in_c_tens")),
+    callout("rod:3", "b", t("in_c_ones")),
   ];
+}
+
+export function introExplainer(lang) {
+  const t = (k) => P(k, lang);
+  const E = [0, 0, 0, 0];
+  const glossary = [
+    [t("in_t_frame"), t("in_t_frame_b")],
+    [t("in_t_decks"), t("in_t_decks_b")],
+    [t("in_t_bar"), t("in_t_bar_b")],
+    [t("in_t_rod"), t("in_t_rod_b")],
+    [t("in_t_upper"), t("in_t_upper_b")],
+    [t("in_t_lower"), t("in_t_lower_b")],
+  ];
+  const MAP = { s: 0.7, sNarrow: 0.6, rx: 6, ry: -10 };
   return {
     id: "intro",
-    title: P("in_title", lang),
-    rods: 3,
+    title: t("in_title"),
+    rods: 4,
     scenes: [
-      SLIDE(1, { to: [1, 2, 3] }, lang),
+      { ...SLIDE(1, { to: [0, 1, 2, 3] }, lang), cam: { s: 1, rx: 6, ry: -12 } },
       SLIDE(2, { to: E, art: artNames(lang) }, lang),
       SLIDE(3, { to: E, art: artHistory(lang) }, lang),
-      SLIDE(4, { to: E, hl: { frame: true, cols: [0, 1, 2] } }, lang),
-      SLIDE(5, { to: E, hl: { bar: true, dot: true } }, lang),
-      SLIDE(6, { from: E, to: [0, 0, 5], hl: { beads: [[0, "top"], [1, "top"], [2, "top"]] }, math: "1 × 5 = 5" }, lang),
-      SLIDE(7, { from: E, to: [0, 0, 4], hl: { beads: [0, 1, 2, 3].map((i) => [2, "low", i]) }, math: "1 + 1 + 1 + 1 = 4" }, lang),
-      SLIDE(8, { to: E, table: parts }, lang),
-      SLIDE(9, { from: [0, 0, 7], to: [3, 4, 7], hl: { labels: [0, 1, 2] }, math: "300 + 40 + 7 = 347" }, lang),
-      SLIDE(10, { from: E, to: [0, 4, 6], math: "46" }, lang),
-      SLIDE(11, { from: [0, 4, 6], to: [0, 7, 6], math: "46 + 30 = 76" }, lang),
-      SLIDE(12, { from: [0, 7, 6], to: [0, 8, 4], math: "76 + 8 = 84" }, lang),
-      SLIDE(13, { to: [0, 8, 4], math: "46 + 38 = 84" }, lang),
+      { ...SLIDE("ov", { to: E }, lang), cam: MAP, labels: mapLabels(lang), hidePlaces: true },
+      {
+        ...SLIDE("deck", { to: E, hl: { frame: true, deck: "both" } }, lang),
+        cam: { focus: ["frame"], fit: 0.6, rx: 5, ry: 10 },
+        labels: [callout("deckU", "l", t("in_c_upperDeck"), { at: [0.03, 0.5], tone: "up" }), callout("frame", "l", t("in_c_frame"), { at: [0, 0.5] }), callout("deckL", "l", t("in_c_lowerDeck"), { at: [0.03, 0.5], tone: "low" }), callout("bar", "r", t("in_c_bar"), { at: [1, 0.5] })],
+        hidePlaces: true,
+      },
+      {
+        ...SLIDE("bar", { to: E, hl: { bar: true, dot: true } }, lang),
+        cam: { s: 0.98, sNarrow: 0.9, rx: 10, ry: -8 },
+        labels: [callout("bar", "t", t("in_c_bar"), { at: [0.4, 0.5] }), callout("dot", "b", t("in_c_dot"))],
+        hidePlaces: true,
+      },
+      {
+        ...SLIDE("rods", { to: E, hl: { cols: [1, 2, 3] } }, lang),
+        cam: { focus: ["frame"], fit: 0.66, rx: 4, ry: -10 },
+        labels: [callout("rod:1", "b", t("in_c_hund")), callout("rod:2", "b", t("in_c_tens")), callout("rod:3", "b", t("in_c_ones"))],
+        hidePlaces: true,
+      },
+      {
+        ...SLIDE("up", { from: E, to: [0, 0, 0, 5], hl: { beads: [0, 1, 2, 3].map((c) => [c, "top"]) }, math: "1 \u00D7 5 = 5" }, lang),
+        cam: { focus: ["deckU"], fit: 0.8, max: 1.35, rx: 8, ry: -10 },
+        labels: [callout("top:3", "t", t("in_c_upperVal"), { tone: "up", at: [0.5, 0] })],
+        hidePlaces: true,
+      },
+      {
+        ...SLIDE("low", { from: E, to: [0, 0, 0, 4], hl: { beads: [0, 1, 2, 3].map((i) => [3, "low", i]) }, math: "1 + 1 + 1 + 1 = 4" }, lang),
+        cam: { focus: ["deckL"], fit: 0.8, max: 1.35, rx: -6, ry: -10 },
+        labels: [callout("low:3:3", "b", t("in_c_lowerVal"), { tone: "low", at: [0.5, 1] })],
+        hidePlaces: true,
+      },
+      { ...SLIDE(8, { to: E, table: glossary }, lang), cam: MAP, labels: mapLabels(lang), hidePlaces: true },
+      { ...SLIDE(9, { from: [0, 0, 0, 7], to: [0, 3, 4, 7], hl: { labels: [1, 2, 3] }, math: "300 + 40 + 7 = 347" }, lang), cam: { s: 1, rx: 6, ry: -8 } },
+      SLIDE(10, { from: E, to: [0, 0, 4, 6], math: "46" }, lang),
+      SLIDE(11, { from: [0, 0, 4, 6], to: [0, 0, 7, 6], math: "46 + 30 = 76" }, lang),
+      SLIDE(12, { from: [0, 0, 7, 6], to: [0, 0, 8, 4], math: "76 + 8 = 84" }, lang),
+      SLIDE(13, { to: [0, 0, 8, 4], math: "46 + 38 = 84" }, lang),
       SLIDE(14, { to: E, art: artWhy(lang) }, lang),
       SLIDE(15, { to: E, art: artMind() }, lang),
       SLIDE(16, { to: E, art: artRoad(lang) }, lang),

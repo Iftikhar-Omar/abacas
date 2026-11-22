@@ -19,6 +19,7 @@ import { P } from "./player-i18n.js";
 import { FingerBoard } from "./fingers.js";
 import { scriptFor } from "./foundations.js";
 import { introExplainer } from "./intro.js";
+import { clearCallouts, clearCamera, setCamera, showCallouts } from "./camera.js";
 import { sfx } from "./sfx.js";
 import { Soroban, layoutFor, snapshotToDigits } from "./soroban.js";
 
@@ -313,6 +314,14 @@ function showScene(i) {
     root.querySelector("#lp-board")?.toggleAttribute("hidden", !!sc.art);
     root.querySelector(".lp-total")?.toggleAttribute("hidden", !!sc.art);
   }
+  // camera + labelled callouts (introduction): tilt, pan and zoom to the part being explained
+  const stageEl = root.querySelector(".lp-stage");
+  clearCallouts(stageEl);
+  stageEl?.classList.toggle("hide-places", !!sc.hidePlaces);
+  if (S.board && sc.cam && !sc.art) {
+    setCamera(S.board, sc.cam, { reduced: reduced() });
+    if (sc.labels?.length) later(() => showCallouts(stageEl, S.board, sc.labels), reduced() ? 0 : 1500);
+  } else if (S.board) clearCamera(S.board);
   // board
   if (S.board && v.boardable && !sc.art) {
     if (sc.hl) {

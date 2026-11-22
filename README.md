@@ -27,7 +27,7 @@ npm test         # lint + build + every lesson + focused flows (needs `npm run d
 
 ## What a lesson feels like
 
-The starter path opens with **What is an abacus?**, a traditional introduction (name, a little history, the names and jobs of the parts, a short demo with a "don't worry if it was fast" promise, why it is worth learning and the mental-abacus goal). It is a 16-slide picture lesson (`src/intro.js`) that counts as learned once finished. Every other lesson is a short, full-screen flow with one obvious button at a time:
+The starter path opens with **What is an abacus?**, a traditional introduction (name, a little history, the names and jobs of the parts, a short demo with a "don't worry if it was fast" promise, why it is worth learning and the mental-abacus goal). It is an 18-slide picture lesson (`src/intro.js`) with a labelled 3D map of the abacus: a slow camera (`src/camera.js`) tilts, pans and zooms to each part while callouts name it (upper/lower deck, frame, value bar, pointer dots, rods, upper/lower beads) that counts as learned once finished. Every other lesson is a short, full-screen flow with one obvious button at a time:
 
 1. **Learn** – a picture-first idea (parts of the abacus, place value, *little friends*, *big friends*, borrowing). Same ideas live on the Learn page under **Helpful ideas** and open from the "?" tag on any friend move.
 2. **Watch** – a friendly coach narrates each move; the beads that must move glow, arrows show the direction, and the board slides for you. Back / Next / Auto-play / Again.
