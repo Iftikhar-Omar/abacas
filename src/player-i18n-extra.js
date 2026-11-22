@@ -3104,5 +3104,203 @@ export const extra = {
   "hi": "जारी रखो",
   "ar": "متابعة",
   "zh": "继续"
+ },
+ "home_welcome": {
+  "es": "Bienvenido de nuevo",
+  "hi": "वापस स्वागत है",
+  "ar": "أهلاً بعودتك",
+  "zh": "欢迎回来"
+ },
+ "home_welcomeNew": {
+  "es": "¡Hola! Aprendamos el ábaco",
+  "hi": "नमस्ते! चलो अबेकस सीखते हैं",
+  "ar": "مرحباً! هيا نتعلّم العدّاد الحسابي",
+  "zh": "你好！一起来学算盘吧"
+ },
+ "home_kickerStart": {
+  "es": "Empieza aquí",
+  "hi": "यहाँ से शुरू करें",
+  "ar": "ابدأ من هنا",
+  "zh": "从这里开始"
+ },
+ "home_kickerContinue": {
+  "es": "Continúa · Lección {n} de {t}",
+  "hi": "जारी रखें · पाठ {n} / {t}",
+  "ar": "تابع · الدرس {n} من {t}",
+  "zh": "继续 · 第 {n} 课，共 {t} 课"
+ },
+ "home_kickerNext": {
+  "es": "Sigue · Lección {n} de {t}",
+  "hi": "अगला · पाठ {n} / {t}",
+  "ar": "التالي · الدرس {n} من {t}",
+  "zh": "下一课 · 第 {n} 课，共 {t} 课"
+ },
+ "home_ctaStart": {
+  "es": "Empezar lección",
+  "hi": "पाठ शुरू करें",
+  "ar": "ابدأ الدرس",
+  "zh": "开始课程"
+ },
+ "home_start": {
+  "es": "Empezar",
+  "hi": "शुरू करें",
+  "ar": "ابدأ",
+  "zh": "开始"
+ },
+ "home_ctaContinue": {
+  "es": "Continuar",
+  "hi": "जारी रखें",
+  "ar": "متابعة",
+  "zh": "继续"
+ },
+ "home_min": {
+  "es": "{m} min",
+  "hi": "{m} मिनट",
+  "ar": "{m} دقيقة",
+  "zh": "{m} 分钟"
+ },
+ "home_noReading": {
+  "es": "No hace falta leer. Bo te guía con dibujos y sonidos.",
+  "hi": "पढ़ने की ज़रूरत नहीं। Bo तुम्हें चित्रों और आवाज़ से समझाएगा।",
+  "ar": "لا حاجة للقراءة. يرشدك Bo بالصور والأصوات.",
+  "zh": "无需阅读。Bo 用图片和声音带你学习。"
+ },
+ "home_progress": {
+  "es": "{d} de {t} lecciones terminadas",
+  "hi": "{t} में से {d} पाठ पूरे हुए",
+  "ar": "تم إنجاز {d} من {t} دروس",
+  "zh": "已完成 {t} 课中的 {d} 课"
+ },
+ "home_yourPath": {
+  "es": "Tu camino",
+  "hi": "तुम्हारा रास्ता",
+  "ar": "مسارك",
+  "zh": "你的学习路线"
+ },
+ "home_here": {
+  "es": "Estás aquí",
+  "hi": "तुम यहाँ हो",
+  "ar": "أنت هنا",
+  "zh": "你在这里"
+ },
+ "home_lessons": {
+  "es": "Todas las lecciones",
+  "hi": "सभी पाठ",
+  "ar": "كل الدروس",
+  "zh": "所有课程"
+ },
+ "home_done": {
+  "es": "Hecho",
+  "hi": "हो गया",
+  "ar": "تم",
+  "zh": "已完成"
+ },
+ "home_review": {
+  "es": "Repaso rápido",
+  "hi": "जल्दी दोहराएँ",
+  "ar": "مراجعة سريعة",
+  "zh": "快速复习"
+ },
+ "home_reviewB": {
+  "es": "Estas lecciones están listas para repasar.",
+  "hi": "ये पाठ दोबारा देखने के लिए तैयार हैं।",
+  "ar": "هذه الدروس جاهزة لمراجعة سريعة.",
+  "zh": "这些课程可以复习一下了。"
+ },
+ "home_reviewCta": {
+  "es": "Repasar",
+  "hi": "दोहराएँ",
+  "ar": "راجِع",
+  "zh": "复习"
+ },
+ "home_allDone": {
+  "es": "¡Terminaste este camino!",
+  "hi": "तुमने यह रास्ता पूरा कर लिया!",
+  "ar": "لقد أنهيت هذا المسار!",
+  "zh": "你完成了这条学习路线！"
+ },
+ "home_allDoneB": {
+  "es": "Prueba el curso completo o entrena tu mente en el gimnasio de práctica.",
+  "hi": "पूरा कोर्स आज़माओ, या प्रैक्टिस जिम में अपने दिमाग़ को तैयार करो।",
+  "ar": "جرّب الدورة الكاملة، أو درّب عقلك في صالة التدريب.",
+  "zh": "试试完整课程，或到练习馆锻炼你的头脑。"
+ },
+ "home_ctaFull": {
+  "es": "Abrir el curso completo",
+  "hi": "पूरा कोर्स खोलें",
+  "ar": "افتح الدورة الكاملة",
+  "zh": "打开完整课程"
+ },
+ "home_ctaPractice": {
+  "es": "Ir a práctica",
+  "hi": "प्रैक्टिस पर जाओ",
+  "ar": "اذهب إلى التدريب",
+  "zh": "去练习"
+ },
+ "path_starter": {
+  "es": "Inicio",
+  "hi": "शुरुआती",
+  "ar": "المبتدئ",
+  "zh": "入门"
+ },
+ "path_full": {
+  "es": "Curso completo",
+  "hi": "पूरा कोर्स",
+  "ar": "الدورة الكاملة",
+  "zh": "完整课程"
+ },
+ "home_help": {
+  "es": "Ayuda",
+  "hi": "मदद",
+  "ar": "مساعدة",
+  "zh": "帮助"
+ },
+ "home_settings": {
+  "es": "Ajustes",
+  "hi": "सेटिंग्स",
+  "ar": "الإعدادات",
+  "zh": "设置"
+ },
+ "home_b_normal-beads": {
+  "es": "Toca las cuentas y descubre qué las hace contar.",
+  "hi": "मोतियों को छुओ और जानो कि वे कैसे गिनती करते हैं।",
+  "ar": "المس الخرزات واكتشف ما الذي يجعلها تُحتسب.",
+  "zh": "点一点算珠，看看它们是如何计数的。"
+ },
+ "home_b_normal-bigbead": {
+  "es": "Conoce la cuenta grande. ¡Vale por una mano entera: 5!",
+  "hi": "बड़े मोती से मिलो। यह एक पूरे हाथ के बराबर है: 5!",
+  "ar": "تعرّف على الخرزة الكبيرة. تساوي يدًا كاملة: 5!",
+  "zh": "认识一下大算珠吧，它代表整只手：5！"
+ },
+ "home_b_normal-places": {
+  "es": "Usa dos varillas para mostrar unidades y decenas.",
+  "hi": "एक और दस दिखाने के लिए दो छड़ियाँ इस्तेमाल करो।",
+  "ar": "استخدم عمودين لإظهار الآحاد والعشرات.",
+  "zh": "用两根竖杆表示个位和十位。"
+ },
+ "home_b_normal-moves": {
+  "es": "Suma caramelos, come caramelos: despierta cuentas, mándalas a dormir.",
+  "hi": "मिठाइयाँ जोड़ो, मिठाइयाँ खाओ: मोतियों को जगाओ, उन्हें सुला दो।",
+  "ar": "أضف حلوى، وكُل حلوى: أيقظ الخرزات، وأرسلها للنوم.",
+  "zh": "加上糖果，吃掉糖果：让算珠醒来，再让它们睡去。"
+ },
+ "home_b_normal-five": {
+  "es": "Suma 4 aunque no haya espacio: los amigos pequeños ayudan.",
+  "hi": "जगह न हो तब भी 4 जोड़ो: छोटे दोस्त मदद करते हैं।",
+  "ar": "أضف 4 حتى لو لم تكن هناك مساحة: الأصدقاء الصغار يساعدون.",
+  "zh": "即使没有空位也要加上 4：小伙伴来帮忙。"
+ },
+ "home_b_normal-ten": {
+  "es": "Pasa a la siguiente varilla con los amigos grandes.",
+  "hi": "बड़े दोस्तों की मदद से अगली छड़ी पर जाओ।",
+  "ar": "انتقل إلى العمود التالي مع الأصدقاء الكبار.",
+  "zh": "借助大伙伴，跨到下一根竖杆。"
+ },
+ "home_b_normal-borrow": {
+  "es": "Quita más de lo que hay en las unidades: pide prestada una decena.",
+  "hi": "इकाइयों से ज़्यादा घटाना हो: एक दस उधार लो।",
+  "ar": "اطرح أكثر مما في الآحاد: استعر عشرة.",
+  "zh": "减去的比个位多：向十位借一。"
  }
 };

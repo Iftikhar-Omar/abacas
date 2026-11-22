@@ -400,37 +400,6 @@ html[data-theme="dark"] .status.good {
 }
 
 /* 4.3: activity first. Navigation and preferences open from the model's Menu. */
-.journey-picker {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin: 0 0 18px;
-}
-.journey-picker button {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  text-align: start;
-  padding: 16px 18px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--surface);
-  color: var(--ink);
-  min-height: 88px;
-}
-.journey-picker b {
-  font-size: 1.1rem;
-}
-.journey-picker span {
-  font-size: 0.9375rem;
-  line-height: 1.45;
-  color: var(--muted);
-}
-.journey-picker .selected {
-  border: 2px solid var(--blue);
-  padding: 15px 17px;
-  background: var(--surface-soft);
-}
 .track-options {
   margin: 0 0 16px;
 }
@@ -566,22 +535,6 @@ body.gym-workspace .page-heading {
   padding: 0 10px;
 }
 @media (max-width: 580px) {
-  .journey-picker {
-    gap: 8px;
-  }
-  .journey-picker button {
-    padding: 12px;
-    min-height: 120px;
-  }
-  .journey-picker .selected {
-    padding: 11px;
-  }
-  .journey-picker b {
-    font-size: 1rem;
-  }
-  .journey-picker span {
-    font-size: 0.875rem;
-  }
   .normal-lesson-list {
     grid-template-columns: minmax(0, 1fr);
   }

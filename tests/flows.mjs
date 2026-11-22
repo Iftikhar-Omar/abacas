@@ -64,6 +64,7 @@ for (const lang of ['bn', 'es', 'hi', 'ar', 'zh']) {
   const { browser, page, errors } = await launch({ lang, reduced: true });
   await page.evaluate(() => window.__openLesson('normal-five'));
   const dir = await page.evaluate(() => document.documentElement.dir);
+  check(await page.evaluate(() => document.scrollingElement.scrollWidth <= innerWidth + 2), `lang ${lang}: home page has no sideways overflow (blank page bug in right-to-left)`);
   const all = new Set();
   for (let i = 0; i < 60; i++) {
     const t = await page.evaluate(() => document.querySelector('#lp')?.innerText || '');

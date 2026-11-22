@@ -229,7 +229,7 @@ function shell() {
   const learned = path.filter(
     (l) => ["learned", "retained"].includes(progressStatus(l))
   ).length;
-  $("#app").innerHTML = `<a href="#main" class="skip-link">${S("skipToContent")}</a><aside class="sidebar"><a href="#learn" class="brand" aria-label="Abacus Academy"><span class="brand-mark"><i></i><i></i><i></i></span><span>abacus<span class="brand-sub">ACADEMY</span></span></a><nav aria-label="${T("pathway")}">${["learn", "solver", "gym", "progress", "account"].map((k) => `<button data-action="nav" data-view="${k}" aria-label="${T(k)}" title="${T(k)}" class="nav-item ${state.view === k ? "selected" : ""}" aria-current="${state.view === k ? "page" : "false"}">${icon(k)}<span>${S("nav" + k)}</span></button>`).join("")}</nav><div class="sidebar-bottom"><div class="mini-progress"><span>${T("learned")}</span><b>${learned} / ${path.length}</b><progress value="${learned}" max="${path.length}"></progress></div><small>Abacus Academy \xB7 v5.0</small></div></aside><div class="main-shell"><header class="topbar"><h2 class="top-title">${T(state.view)}</h2><div class="top-actions"><span class="session-badge">${state.user ? esc(state.user.username) : T("guest")}</span><label class="language"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg><select id="language" aria-label="${S("chooseLanguage")}">${languages.map(([code, name]) => `<option value="${code}" ${code === lang ? "selected" : ""}>${name}</option>`).join("")}</select></label>${btn(icon("info"), "guide", "icon-button", `aria-label="${S("guide")}" title="${S("guide")}"`)}${btn(icon("gear"), "settings", "icon-button", `aria-label="${S("settings")}" title="${S("settings")}"`)}</div></header><main id="main" tabindex="-1"></main></div>`;
+  $("#app").innerHTML = `<a href="#main" class="skip-link">${S("skipToContent")}</a><aside class="sidebar"><a href="#learn" class="brand" aria-label="Abacus Academy"><span class="brand-mark"><i></i><i></i><i></i></span><span>abacus<span class="brand-sub">ACADEMY</span></span></a><nav aria-label="${T("pathway")}">${["learn", "solver", "gym", "progress", "account"].map((k) => `<button data-action="nav" data-view="${k}" aria-label="${T(k)}" title="${T(k)}" class="nav-item ${state.view === k ? "selected" : ""}" aria-current="${state.view === k ? "page" : "false"}">${icon(k)}<span>${S("nav" + k)}</span></button>`).join("")}</nav><div class="sidebar-bottom"><small>Abacus Academy \xB7 v5.0</small></div></aside><div class="main-shell"><header class="topbar"><h2 class="top-title">${T(state.view)}</h2><div class="top-actions">${state.user ? `<span class="session-badge">${esc(state.user.username)}</span>` : ""}<label class="language"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg><select id="language" aria-label="${S("chooseLanguage")}">${languages.map(([code, name]) => `<option value="${code}" ${code === lang ? "selected" : ""}>${name}</option>`).join("")}</select></label>${btn(`${icon("info")}<span class="lbl">${P("home_help", lang)}</span>`, "guide", "top-btn", `aria-label="${S("guide")}" title="${S("guide")}"`)}${btn(`${icon("gear")}<span class="lbl">${P("home_settings", lang)}</span>`, "settings", "top-btn", `aria-label="${S("settings")}" title="${S("settings")}"`)}</div></header><main id="main" tabindex="-1"></main></div>`;
 }
 function render() {
   const active = captureFocus(), previousKey = $("#main")?.dataset.renderKey, key = `${state.view}-${state.gym?.status || ""}-${state.view === "solver" ? state.solverError : ""}`;
@@ -296,34 +296,78 @@ function eligibleLessons() {
     )
   );
 }
+function firstSentence(text) {
+  const m = String(text).match(/^.*?[.!?](\s|$)/);
+  return (m ? m[0] : String(text)).trim();
+}
+const isDone = (l) => ["learned", "retained"].includes(progressStatus(l));
+function blurbFor(l) {
+  const key = `home_b_${l.id}`;
+  const v = P(key, lang);
+  return v === key ? firstSentence(lessonIdea(l)) : v;
+}
+const checkIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.5 4.5L19 7"/></svg>';
+const chevronIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>';
 function renderLearn() {
-  const list = eligibleLessons(), r = list.find((l) => state.progress.lessons[l.id]?.due < Date.now()) || list.find((l) => !["learned", "retained"].includes(progressStatus(l))) || list[0];
-  const completed = list.filter(
-    (l) => ["learned", "retained"].includes(progressStatus(l))
-  ).length;
-  $("#main").innerHTML = `<div class="page-heading"><div><p class="eyebrow">${S("studio")}</p><h1>${T("pathway")}</h1></div><span class="quiet-label">${streakDays() ? `<b class="streak">${P("streakDays", lang, { n: streakDays() })}</b> \xB7 ` : ""}${completed} / ${list.length} ${T("learned")}</span></div><div class="journey-picker" aria-label="${W("learning")}">${["normal", "mastery"].map((j) => `<button data-action="journey" data-journey="${j}" aria-pressed="${state.journey === j}" class="${state.journey === j ? "selected" : ""}"><b>${W(j)}</b><span>${W(j + "Note")}</span></button>`).join("")}</div><details class="track-options" ${state.journey === "normal" ? "hidden" : ""}><summary>${W("sources")}</summary><div class="track-picker" aria-label="${S("tracks")}">${[
-    ["numbers", "numberTrack", "01"],
-    ["abacus", "abacusTrack", "02"],
-    ["fingers", "fingerTrack", "03"],
-    ["mental", "mentalTrack", "04"]
-  ].map(
-    ([k, t, n]) => `<button data-action="track" data-track="${k}" aria-pressed="${state.track === k}" class="${state.track === k ? "selected" : ""}"><small>${n}</small><span>${S(t)}</span></button>`
-  ).join(
-    ""
-  )}</div></details><section class="discovery-card"><div class="discovery-copy"><span class="pill">${r === list[0] && !completed ? P("startHere", lang) : T(progressStatus(r))} \xB7 ${r.minutes} ${T("minutes")}</span><h2>${esc(L(r))}</h2><p>${esc(lessonIdea(r))}</p>${btn(`${T("start")} ${icon("learn")}`, "openLesson", "primary", `data-id="${r.id}"`)}</div><div class="discovery-model"><div class="model-caption"><span>${T(state.track === "fingers" ? "hands" : "abacus")}</span><b dir="ltr">${r.example}</b></div><div id="hero-model" class="model"></div><p>${S("guideTip")}</p></div></section><div class="ideas-shelf"><div class="path-heading"><h2>${P("helpfulIdeas", lang)}</h2><span>${P("helpfulIdeasNote", lang)}</span></div><div class="idea-row">${explainerIds.map((id) => { const e = explainerById(id, lang); return `<button class="idea-card" data-action="explainer" data-id="${id}"><span class="idea-art idea-${id}" aria-hidden="true">${ideaArt(id)}</span><b>${esc(e.title)}</b><small>${esc(e.blurb)}</small></button>`; }).join("")}</div></div><div class="path-heading"><h2>${T("allLessons")}</h2></div><div class="curriculum">${state.journey === "normal" ? `<div class="normal-lesson-list">${list.map((l, i) => `<button data-action="openLesson" data-id="${l.id}" class="normal-lesson ${l.id === r.id ? "recommended" : ""}"><span class="lesson-number">${["learned", "retained"].includes(progressStatus(l)) ? icon("check") : String(i + 1).padStart(2, "0")}</span><span><b>${esc(L(l))}</b><small>${l.minutes} ${T("minutes")}</small></span><span class="lesson-status">${T(progressStatus(l))}</span></button>`).join("")}</div>` : units.map((u, i) => {
-    const ll = list.filter((l) => l.unit === i);
-    if (!ll.length) return "";
-    const done = ll.filter(
-      (l) => ["learned", "retained"].includes(progressStatus(l))
-    ).length;
-    const source = state.track === "mental" ? "mental" : state.track === "fingers" ? "hands" : "abacus", ready = unitReadiness(state.progress.attempts, i, source);
-    return `<details class="unit" ${r.unit === i ? "open" : ""}><summary><span class="unit-number">${u[2]}</span><div><small>${T("learn")} ${i + 1}</small><h3>${lang === "en" ? u[0] : lang === "bn" ? u[1] : skillName(u[3], lang)}</h3></div><span class="unit-count">${done} / ${ll.length}</span><span class="chevron">\u2304</span></summary><div class="lesson-grid">${ll.map((l, j) => `<button class="lesson-tile ${l.id === r.id ? "recommended" : ""}" data-action="openLesson" data-id="${l.id}"><span class="lesson-symbol">${["learned", "retained"].includes(progressStatus(l)) ? icon("check") : String(j + 1).padStart(2, "0")}</span><span class="lesson-title">${esc(L(l))}</span><small>${l.minutes} ${T("minutes")} \xB7 ${T(progressStatus(l))}</small></button>`).join("")}</div><div class="unit-check-row">${btn(S("checkUnit"), "unitCheck", "secondary", `data-unit="${i}"`)}<span>${ready.retained ? T("retained") : ready.accuracyReady ? S("accuracyReady") : ""}</span></div></details>`;
-  }).join("")}</div>`;
-  const trace = solve(r.example), start = trace.steps.find((x) => x.kind === "operation")?.before || trace.steps.at(-1).after;
+  const list = eligibleLessons();
+  const completed = list.filter(isDone).length;
+  const next = list.find((l) => !isDone(l)) || null;
+  const hero = next || list[0];
+  const heroIndex = list.indexOf(hero);
+  const started = !!next && (state.progress.lessons[next.id]?.attempts || 0) > 0;
+  const due = list.filter((l) => isDone(l) && state.progress.lessons[l.id]?.due < Date.now()).slice(0, 2);
+  const streak = streakDays();
+  const normal = state.journey === "normal";
+
+  const kicker = !next ? P("home_allDone", lang) : completed === 0 && !started ? P("home_kickerStart", lang) : P(started ? "home_kickerContinue" : "home_kickerNext", lang, { n: heroIndex + 1, t: list.length });
+  const cta = !next ? (normal ? btn(`${P("home_ctaFull", lang)} ${icon("learn")}`, "journey", "primary hero-cta", 'data-journey="mastery"') : btn(`${P("home_ctaPractice", lang)} ${icon("gym")}`, "nav", "primary hero-cta", 'data-view="gym"')) : btn(`${P(started ? "home_ctaContinue" : "home_ctaStart", lang)} ${chevronIcon}`, "openLesson", "primary hero-cta", `data-id="${hero.id}"`);
+  const heroTitle = next ? esc(L(hero)) : P("home_allDone", lang);
+  const heroText = next ? esc(blurbFor(hero)) : P("home_allDoneB", lang);
+  const meta = next ? `<span class="hero-meta"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>${P("home_min", lang, { m: hero.minutes })}</span>${completed === 0 && !started ? `<span class="hero-meta">${P("home_noReading", lang)}</span>` : ""}` : "";
+
+  // the path at a glance: one dot per lesson (starter) or one chip per unit (full course)
+  const strip = normal
+    ? `<ol class="path-strip" aria-label="${P("home_yourPath", lang)}">${list.map((l, i) => `<li><button data-action="openLesson" data-id="${l.id}" class="node ${isDone(l) ? "done" : l === next ? "current" : ""}" aria-label="${i + 1}. ${esc(L(l))}${l === next ? ` (${P("home_here", lang)})` : ""}" ${l === next ? 'aria-current="step"' : ""}>${isDone(l) ? checkIcon : i + 1}</button>${l === next ? `<span class="here">${P("home_here", lang)}</span>` : ""}</li>`).join("")}</ol>`
+    : "";
+
+  const rowsOrUnits = normal
+    ? `<div class="lesson-rows">${list.map((l, i) => {
+        const st = isDone(l) ? "done" : l === next ? "current" : "todo";
+        return `<button data-action="openLesson" data-id="${l.id}" class="lesson-row ${st}"><span class="lr-mark">${st === "done" ? checkIcon : i + 1}</span><span class="lr-body"><span class="lr-title">${esc(L(l))}</span><span class="lr-meta">${P("home_min", lang, { m: l.minutes })}</span></span><span class="lr-end">${st === "current" ? `<span class="lr-pill">${started ? P("home_ctaContinue", lang) : P("home_start", lang)}</span>` : st === "done" ? `<span class="lr-done">${P("home_done", lang)}</span>` : chevronIcon}</span></button>`;
+      }).join("")}</div>`
+    : `<details class="track-options"><summary>${W("sources")}</summary><div class="track-picker" aria-label="${S("tracks")}">${[["numbers", "numberTrack", "01"], ["abacus", "abacusTrack", "02"], ["fingers", "fingerTrack", "03"], ["mental", "mentalTrack", "04"]].map(([k, t, n]) => `<button data-action="track" data-track="${k}" aria-pressed="${state.track === k}" class="${state.track === k ? "selected" : ""}"><small>${n}</small><span>${S(t)}</span></button>`).join("")}</div></details><div class="curriculum">${units.map((u, i) => {
+        const ll = list.filter((l) => l.unit === i);
+        if (!ll.length) return "";
+        const n = ll.filter(isDone).length;
+        const source = state.track === "mental" ? "mental" : state.track === "fingers" ? "hands" : "abacus", ready = unitReadiness(state.progress.attempts, i, source);
+        return `<details class="unit" ${hero.unit === i ? "open" : ""}><summary><span class="unit-number">${u[2]}</span><div><h3>${lang === "en" ? u[0] : lang === "bn" ? u[1] : skillName(u[3], lang)}</h3></div><span class="unit-count">${n} / ${ll.length}</span><span class="chevron">⌄</span></summary><div class="lesson-rows">${ll.map((l, j) => { const st = isDone(l) ? "done" : l === next ? "current" : "todo"; return `<button class="lesson-row ${st}" data-action="openLesson" data-id="${l.id}"><span class="lr-mark">${st === "done" ? checkIcon : j + 1}</span><span class="lr-body"><span class="lr-title">${esc(L(l))}</span><span class="lr-meta">${P("home_min", lang, { m: l.minutes })}</span></span><span class="lr-end">${st === "current" ? `<span class="lr-pill">${P("home_here", lang)}</span>` : st === "done" ? `<span class="lr-done">${P("home_done", lang)}</span>` : chevronIcon}</span></button>`; }).join("")}</div><div class="unit-check-row">${btn(S("checkUnit"), "unitCheck", "secondary", `data-unit="${i}"`)}<span>${ready.retained ? T("retained") : ready.accuracyReady ? S("accuracyReady") : ""}</span></div></details>`;
+      }).join("")}</div>`;
+
+  $("#main").innerHTML = `<h1 class="sr-only">${T("pathway")}</h1>
+  <div class="home-greet"><p>${completed || started ? P("home_welcome", lang) : P("home_welcomeNew", lang)}</p>${streak ? `<span class="streak-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 2.500 1.500 2.500C11 9 10 6 12 3z"/></svg>${P("streakDays", lang, { n: streak })}</span>` : ""}</div>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <p class="hero-kicker">${kicker}</p>
+      <h2 id="hero-title" class="hero-title">${heroTitle}</h2>
+      <p class="hero-text">${heroText}</p>
+      <div class="hero-metas">${meta}</div>
+      <div class="hero-cta-row">${cta}</div>
+      <div class="hero-progress" role="group" aria-label="${P("home_progress", lang, { d: completed, t: list.length })}"><div class="bar"><i style="width:${list.length ? Math.round((completed / list.length) * 100) : 0}%"></i></div><span>${P("home_progress", lang, { d: completed, t: list.length })}</span></div>
+    </div>
+    <div class="hero-board" aria-hidden="true"><div id="hero-model" class="model"></div></div>
+  </section>
+  ${due.length ? `<section class="review-strip"><div><b>${P("home_review", lang)}</b><span>${P("home_reviewB", lang)}</span></div>${due.map((l) => btn(esc(L(l)), "openLesson", "secondary", `data-id="${l.id}"`)).join("")}</section>` : ""}
+  ${strip ? `<section class="path-section"><h2 class="section-title">${P("home_yourPath", lang)}</h2>${strip}</section>` : ""}
+  <section class="lessons-section"><div class="section-head"><h2 class="section-title">${P("home_lessons", lang)}</h2><div class="journey-picker" role="group" aria-label="${W("learning")}">${["normal", "mastery"].map((j) => `<button data-action="journey" data-journey="${j}" aria-pressed="${state.journey === j}" class="${state.journey === j ? "selected" : ""}">${P(j === "normal" ? "path_starter" : "path_full", lang)} <small>${j === "normal" ? normalLessons.length : lessons.length}</small></button>`).join("")}</div></div>${rowsOrUnits}</section>
+  <section class="ideas-shelf"><div class="section-head"><h2 class="section-title">${P("helpfulIdeas", lang)}</h2><span class="section-note">${P("helpfulIdeasNote", lang)}</span></div><div class="idea-row">${explainerIds.map((id) => { const e = explainerById(id, lang); return `<button class="idea-card" data-action="explainer" data-id="${id}"><span class="idea-art idea-${id}" aria-hidden="true">${ideaArt(id)}</span><span class="idea-text"><b>${esc(e.title)}</b><small>${esc(e.blurb)}</small></span></button>`; }).join("")}</div></section>`;
+  const trace = solve(hero.example), start = trace.steps.find((x) => x.kind === "operation")?.before || trace.steps.at(-1).after;
   const layout = layoutFor(trace.steps.flatMap((x) => [x.before, x.after]));
-  const hero = new Soroban($("#hero-model"), { rods: layout.rods, scale: layout.scale, labels: true, t: (k) => P(k, lang) });
-  if (!hero.set(start)) $("#hero-model").innerHTML = `<div class="hero-expr" dir="ltr">${esc(r.example.replaceAll("*", "\xD7").replaceAll("/", "\xF7"))}</div>`;
+  const board = new Soroban($("#hero-model"), { rods: Math.min(layout.rods, 4), scale: layout.scale, labels: false, digits: false, t: (k) => P(k, lang) });
+  if (!board.set(start)) board.set(Array(board.rods).fill(0));
   heroModel = { dispose() {} };
+  // keep "you are here" in view on narrow screens (scroll the strip only, never the page)
+  const pathEl = $(".path-strip"), cur = $(".node.current");
+  if (pathEl && cur && pathEl.scrollWidth > pathEl.clientWidth) pathEl.scrollLeft = cur.parentElement.offsetLeft - pathEl.clientWidth / 2 + cur.offsetWidth;
 }
 function openLesson(id) {
   closeDialog();
