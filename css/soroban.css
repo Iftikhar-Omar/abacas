@@ -21,6 +21,8 @@
   --sb-bar: #0a1030;
   --sb-ink: #e9eeff;
   --sb-inner: #202e48;
+  --sb-chip: #2b3b5f;
+  --sb-chip-line: #44577f;
 }
 .soroban {
   width: 100%;
@@ -69,8 +71,8 @@
   stroke-width: 1.5;
 }
 .sb-digit-bg {
-  fill: #fff;
-  stroke: #d6dcf2;
+  fill: var(--sb-chip, #fff);
+  stroke: var(--sb-chip-line, #d6dcf2);
 }
 .sb-digit {
   font: 800 15px/1 Inter, system-ui, sans-serif;

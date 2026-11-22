@@ -100,7 +100,7 @@ export function buildScenes(trace, lang, layout) {
           type: "set",
           title: P("sc_set", lang, { digit, col: columnName(place, lang) }),
           body: digit === 5 ? P("sc_setBodyFive0", lang) : digit > 5 ? P("sc_setBodyFive", lang, { k: bottom(digit - 5, lang) }) : P("sc_setBody", lang, { k: bottom(digit, lang) }),
-          math: digit >= 5 ? parts : "",
+          math: digit > 5 ? parts : "",
           column: Number(p.column),
         })
       );
@@ -115,11 +115,14 @@ export function buildScenes(trace, lang, layout) {
       else if (look.some((x) => x.kind === "borrowTen")) hint = "sc_opBorrow";
       else if (look.some((x, k) => x.kind === "upperOn" && look[k + 1]?.kind === "lowerOff" && look[k + 1].params.column === x.params.column) || look.some((x, k) => x.kind === "upperOff" && look[k + 1]?.kind === "lowerOn" && look[k + 1].params.column === x.params.column)) hint = "sc_opLittle";
       const word = { "+": "add", [minus]: "take", "-": "take", "*": "times", [times]: "times", "/": "share", "÷": "share" }[p.op] || "add";
+      // multi-digit numbers are split by place: 56 -> 50 + 6
+      const digitsOfB = /^\d{2,}$/.test(String(p.b)) ? String(p.b).split("").map((d, k, a) => (d === "0" ? null : d + "0".repeat(a.length - 1 - k))).filter(Boolean) : [];
+      const split = digitsOfB.length >= 2 && (word === "add" || word === "take") ? `${P("sc_opSplit", lang, { b: p.b, parts: digitsOfB.join(" + ") })} ` : "";
       scenes.push(
         mk(i, i, {
           type: "operation",
           title: P(`sc_op_${word}`, lang, { b: pretty(p.b) }),
-          body: P(hint, lang),
+          body: split + P(hint, lang),
           math: `${pretty(p.a)} ${pretty(p.op)} ${pretty(p.b)}`,
           friend: hint === "sc_opBig" ? "big" : hint === "sc_opBorrow" ? "borrow" : hint === "sc_opLittle" ? "little" : null,
         })
@@ -129,7 +132,7 @@ export function buildScenes(trace, lang, layout) {
     }
 
     if (s.kind === "makeTen" || s.kind === "borrowTen") {
-      pendingBig = { kind: s.kind === "makeTen" ? "big" : "borrow", digit: p.digit, complement: p.complement, taken: 0 };
+      pendingBig = { kind: s.kind === "makeTen" ? "big" : "borrow", digit: p.digit, complement: p.complement, taken: 0, column: p.column };
       const add = s.kind === "makeTen";
       scenes.push(
         mk(i, i, {
@@ -145,11 +148,12 @@ export function buildScenes(trace, lang, layout) {
     }
 
     if (s.kind === "operationDone") {
+      const more = steps.slice(i + 1).some((x) => x.kind === "operation");
       scenes.push(
         mk(i, i, {
           type: "result",
-          title: P("sc_result", lang, { r: pretty(p.result) }),
-          body: P("sc_resultBody", lang),
+          title: P(more ? "sc_resultSoFar" : "sc_result", lang, { r: pretty(p.result) }),
+          body: P(more ? "sc_resultSoFarBody" : "sc_resultBody", lang),
           math: pretty(p.result),
         })
       );
@@ -181,6 +185,29 @@ export function buildScenes(trace, lang, layout) {
         scenes.push(mk(i + 1, i + 1, { type: "little2", friend: "little", title: P("sc_littleSub2", lang, { k: bottom(k, lang) }), body: P("sc_littleSub2Body", lang, { d, k }), math: `${minus}5 + ${k} = ${minus}${d}` }));
         if (pendingBig) pendingBig = pendingBig.taken ? (pendingBig.kind === "borrow" ? null : pendingBig) : { ...pendingBig, taken: 1 };
         i += 2;
+        continue;
+      }
+      // inside a big friend / borrow: all moves in one column form ONE scene (e.g. "-6" = top bead up + 1 bead down)
+      if (pendingBig && !(s.kind === "upperOn" && sameCol && next.kind === "lowerOff") && !(s.kind === "upperOff" && sameCol && next.kind === "lowerOn" && pendingBig.taken)) {
+        let j = i;
+        while (j + 1 < steps.length && steps[j + 1].group === s.group && BOARD_KINDS.has(steps[j + 1].kind) && steps[j + 1].params.column === p.column) j++;
+        const first = pendingBig.taken === 0;
+        const big = pendingBig.kind === "big";
+        const d = pendingBig.digit;
+        const c = pendingBig.complement;
+        const key = big ? (first ? "big1" : "big2") : first ? "borrow1" : "borrow2";
+        const sc = mk(i, j, {
+          type: key,
+          friend: big ? "big" : "borrow",
+          title: P(`sc_${key}`, lang, { c, col }),
+          body: P(`sc_${key}Body`, lang, { d, c }),
+          math: big ? (first ? `${minus}${c}` : "+10") : first ? `${minus}10` : `+${c}`,
+          column: Number(p.column),
+        });
+        sc.waypoints = steps.slice(i, j).map((x) => digitsOf(x.after));
+        scenes.push(sc);
+        pendingBig = first ? { ...pendingBig, taken: 1 } : null;
+        i = j + 1;
         continue;
       }
       const amt = p.amount;

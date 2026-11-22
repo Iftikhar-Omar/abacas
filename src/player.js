@@ -391,7 +391,7 @@ function submitCheck(value) {
   const c = a.cur;
   if (c.done || !String(value).trim()) return;
   c.done = true;
-  const ok = env.answerEquals(value, c.item.expected);
+  const ok = env.answerEquals(value, c.item.expected, c.item.expression);
   const response = { correct: ok, hinted: c.hinted, ms: performance.now() - c.at, source: a.source };
   a.responses.push(response);
   env.recordCheck({ ...response, lessonId: undefined, mode: "assessment", expression: c.item.expression, answer: String(value), expected: c.item.expected, config: { unit: a.unit, source: a.source, assessmentId: a.id, itemIndex: a.index, timed: a.timed, assessmentLesson: c.item.lessonId } });
@@ -495,7 +495,7 @@ function onTryChange({ digits }) {
   if (undo) undo.disabled = false;
   const fb = root.querySelector("#lp-fb");
   if (eq(digits, task.to)) return taskDone(true);
-  if (eq(digits, task.from)) {
+  if (eq(digits, task.from) || (task.waypoints || []).some((w) => eq(w, digits))) {
     fb.className = "lp-feedback";
     fb.textContent = "";
     return;
@@ -583,7 +583,7 @@ function drawQuestion() {
   const q = S.q;
   const hideBoard = q.mental && !q.revealed;
   const text = q.kind === "build" ? t("showOnBoard", { n: pretty(q.expr) }) : q.kind === "read" ? t("whatNumber") : pretty(q.expr);
-  shell(`${boardPanel({ trace: null, boardable: q.boardable, hide: !q.boardable, tools: q.boardable ? `<div class="lp-tools"><button class="lp-chip" data-lp="clearBoard">${icon("reset")}<span>${esc(t("clearBoard"))}</span></button></div>` : "" })}<section class="lp-coach" id="lp-coach"><div class="lp-streak" aria-label="${esc(t("inARow", { n: NEED }))}">${Array.from({ length: NEED }, (_, i) => `<i class="${i < q.streak ? "on" : ""}"></i>`).join("")}<small>${esc(t("inARow", { n: NEED }))}</small></div><div class="lp-speech">${avatar("think")}<div class="lp-bubble"><div class="lp-bubble-top"><span class="lp-kicker">${esc(t("question"))} ${q.asked + 1}</span></div><div class="lp-question" dir="ltr" aria-label="${esc(text)}">${esc(text)}</div><p>${esc(q.kind === "build" ? t("buildHint") : q.kind === "read" ? t("readHint") : hideBoard ? t("picture") : q.boardable ? t("practiceHint") : t("practiceHintNoBoard"))}</p></div></div><form class="lp-answer" id="lp-form" ${q.kind === "build" ? "hidden" : ""} autocomplete="off"><label class="sr-only" for="lp-answer">${esc(t("answer"))}</label><input id="lp-answer" name="a" inputmode="${/[\/x=]|−|-/.test(q.expected) ? "text" : "decimal"}" placeholder="${esc(t("answer"))}" maxlength="40" dir="ltr" autocapitalize="off" spellcheck="false" enterkeyhint="done"><button class="lp-btn primary" type="submit">${esc(t("check"))}</button></form><div class="lp-feedback" id="lp-fb" role="status"></div><div class="lp-actions row"><button class="lp-btn ghost small" data-lp="hint">${esc(t("hint"))}</button>${q.mental && !q.revealed ? `<button class="lp-btn ghost small" data-lp="peek">${esc(t("peek"))}</button>` : ""}</div></section>`);
+  shell(`${boardPanel({ trace: null, boardable: q.boardable, hide: !q.boardable, tools: q.boardable ? `<div class="lp-tools"><button class="lp-chip" data-lp="clearBoard">${icon("reset")}<span>${esc(t("clearBoard"))}</span></button></div>` : "" })}<section class="lp-coach" id="lp-coach"><div class="lp-streak" aria-label="${esc(t("inARow", { n: NEED }))}">${Array.from({ length: NEED }, (_, i) => `<i class="${i < q.streak ? "on" : ""}"></i>`).join("")}<small>${esc(t("inARow", { n: NEED }))}</small></div><div class="lp-speech">${avatar("think")}<div class="lp-bubble"><div class="lp-bubble-top"><span class="lp-kicker">${esc(t("question"))} ${q.asked + 1}</span></div><div class="lp-question" dir="ltr" aria-label="${esc(text)}">${esc(text)}</div><p>${esc(q.kind === "build" ? t("buildHint") : q.kind === "read" ? t("readHint") : hideBoard ? t("picture") : q.boardable ? t("practiceHint") : t("practiceHintNoBoard"))}</p></div></div><form class="lp-answer" id="lp-form" ${q.kind === "build" ? "hidden" : ""} autocomplete="off"><label class="sr-only" for="lp-answer">${esc(t("answer"))}</label><input id="lp-answer" name="a" inputmode="${/[\/x=\u2212-]/.test(q.expected + q.expr) ? "text" : "decimal"}" placeholder="${esc(t("answer"))}" maxlength="40" dir="ltr" autocapitalize="off" spellcheck="false" enterkeyhint="done"><button class="lp-btn primary" type="submit">${esc(t("check"))}</button></form><div class="lp-feedback" id="lp-fb" role="status"></div><div class="lp-actions row"><button class="lp-btn ghost small" data-lp="hint">${esc(t("hint"))}</button>${q.mental && !q.revealed ? `<button class="lp-btn ghost small" data-lp="peek">${esc(t("peek"))}</button>` : ""}</div></section>`);
   if (q.boardable) {
     const b = makeBoard(q.layout, q.kind !== "read", ({ digits }) => {
       setTotal(S.board.valueOf(digits));
@@ -601,7 +601,7 @@ function drawQuestion() {
 function checkAnswer(value) {
   const q = S.q;
   if (q.state !== "ask" || !String(value).trim()) return;
-  afterAnswer(env.answerEquals(value, q.expected), value);
+  afterAnswer(env.answerEquals(value, q.expected, q.expr), value);
 }
 
 function afterAnswer(ok, value) {

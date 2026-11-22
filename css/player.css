@@ -684,9 +684,12 @@ html[data-theme="dark"] .lp-btn.primary {
   }
   .lp-main {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(210px, 46%) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
     gap: 10px;
     padding: 4px 12px calc(12px + env(safe-area-inset-bottom));
+  }
+  .lp-stage:not(.no-board) {
+    height: clamp(230px, 41vh, 360px);
   }
   .lp-stage {
     border-radius: 22px;
@@ -709,9 +712,6 @@ html[data-theme="dark"] .lp-btn.primary {
   }
   .lp-chip span {
     font-size: 0.85rem;
-  }
-  .lp-main:has(.lp-stage.no-board) {
-    grid-template-rows: auto minmax(0, 1fr);
   }
   .bo {
     width: 46px;
@@ -756,4 +756,9 @@ html[data-theme="dark"] .lp-btn.primary {
 
 .lp-progress.solo {
   visibility: hidden;
+}
+
+/* the old page-level `main` padding (space for the phone tab bar) must not apply inside the player */
+body .lp > main.lp-main {
+  padding-bottom: calc(14px + env(safe-area-inset-bottom));
 }

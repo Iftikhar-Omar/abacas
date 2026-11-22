@@ -254,3 +254,12 @@
     height: 200px;
   }
 }
+.gym-layout {
+  display: block;
+}
+.gym-layout .gym-stage {
+  margin-inline: auto;
+}
+.discovery-model .model-caption {
+  display: none;
+}

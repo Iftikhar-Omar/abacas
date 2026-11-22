@@ -1271,10 +1271,19 @@ function nextLessonAfter(l) {
   if (l.journey === "normal") return l.order === normalLessons.length - 1 ? "mastery" : normalLessons.find((x) => x.order > l.order);
   return lessons.find((x) => x.order > l.order) || null;
 }
+/** Accept the ways a learner naturally writes an answer: "3 r 2", "3 2/5", and the typographic minus sign. */
+function lenientAnswer(value, expected, expr = "") {
+  const v = String(value).replaceAll("\u2212", "-").trim();
+  if (answerEquals(v, expected)) return true;
+  const r = v.match(/^(\d+)\s*r\s*(\d+)$/i), e = String(expr).replaceAll("\xF7", "/").match(/^\s*(\d+)\s*\/\s*(\d+)\s*$/);
+  if (r && e && Number(e[2]) > 0) return Math.floor(Number(e[1]) / Number(e[2])) === Number(r[1]) && Number(e[1]) % Number(e[2]) === Number(r[2]);
+  if (/^-?\d+\s+\d+\/\d+$/.test(v)) return answerEquals(v.replace(/\s+/, "+"), expected);
+  return false;
+}
 configurePlayer({
   getLang: () => lang,
   solve,
-  answerEquals,
+  answerEquals: lenientAnswer,
   freshQuestions: (l, seed) => freshQuestions(l, seed, "abacus"),
   recordAttempt: (payload) => {
     recordAttempt(state.progress, payload);
