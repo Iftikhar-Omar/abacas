@@ -1,0 +1,14 @@
+{
+  "name": "abacus-academy",
+  "version": "5.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Abacus Academy — learn abacus and mental maths through small interactive lessons.",
+  "scripts": {
+    "dev": "node tools/dev-server.mjs",
+    "build": "node tools/build.mjs",
+    "test": "node tests/run.mjs"
+  },
+  "dependencies": { "three": "0.186.0" },
+  "devDependencies": { "esbuild": "^0.25.0", "playwright": "*" }
+}
